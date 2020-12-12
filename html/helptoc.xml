@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<toc version="2.0">
+<!-- First tocitem specifies top level in Help browser Contents pane -->
+<!-- This can be a roadmap page, as shown below, or a content page -->
+    <tocitem target="index.html">DynaProg Toolbox
+        <!-- Getting Started Guide -->
+        <tocitem target="getting_started.html" image="HelpIcon.GETTING_STARTED">
+            Getting Started
+            <tocitem target="set_up_a_basic_problem.html">Set up a basic problem
+            </tocitem>
+            <tocitem target="specify_constraints.html">Specify contraints on the state and control variables
+            </tocitem>
+            <tocitem target="handle_exogenous_inputs.html">Handle exogenous inputs
+            </tocitem>
+            <tocitem target="use_additional_inputs.html">Use additional inputs
+            </tocitem>
+            <tocitem target="use_additional_outputs.html">Use additional outputs
+            </tocitem>
+            <tocitem target="splitting_the_model.html">Splitting the model function
+            </tocitem>
+            <tocitem target="troubleshooting.html">Troubleshooting your model and Safe Mode
+            </tocitem>
+        </tocitem>
+        <!-- Examples -->
+        <tocitem target="examples.html" image="HelpIcon.EXAMPLES">
+            Examples
+            <tocitem target="example_cart.html">Double integrator example
+            </tocitem>
+            <tocitem target="example_hev.html">Hybrid electric vehicle example
+            </tocitem>
+            <tocitem target="example_split_hev.html">Hybrid electric vehicle example: split model
+            </tocitem>
+            <tocitem target="example_troubleshooting">Hybrid electric vehicle example: troubleshooting the model
+            </tocitem>
+        </tocitem>
+        <!-- Syntax -->
+        <tocitem target="syntax.html" image="HelpIcon.FUNCTION">
+            Syntax
+        </tocitem>
+        <!-- Theory -->
+        <tocitem target="theory.html" image="HelpIcon.USER_GUIDE">
+            Theory
+        </tocitem>
+    </tocitem>
+</toc>
