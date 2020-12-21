@@ -56,7 +56,7 @@ emTrq = prob.AddOutputsProfile{2};
 figure
 t = plot(prob);
 nexttile(t, 5)
-plot(time_s(1:end-1), engTrq, 'LineWidth', 1.5)
+plot(time_s, engTrq, 'LineWidth', 1.5)
 hold on
-plot(time_s(1:end-1), emTrq, 'LineWidth', 1.5)
+plot(time_s, emTrq, 'LineWidth', 1.5)
 legend('Engine torque, Nm', 'EM torque, Nm', 'FontSize', 10)
