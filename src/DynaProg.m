@@ -157,6 +157,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         N_SV double % total size of the state variables grids
         N_CV double % total size of the control variables grids
         StateCombGrid
+        StateGridVect % State grids as N_SV_n-by-1 vectors, needed to create VF interpolants
         ControlCombGrid
         ControlFullGrid % Full CV grid
         ControlFullShiftedGrid
@@ -261,6 +262,9 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 obj.LevelSetInitialization = 'linear';
             end
             
+            % State grids as N_SV_n-by-1 vectors, needed to create VF interpolants
+            obj.StateGridVect = cellfun(@(x) x(:), obj.StateGrid, 'UniformOutput', false);
+            
             % Combined SV grids
             obj.StateCombGrid = cell(1, length(obj.N_SV));
             obj.ControlCombGrid = cell(1, length(obj.N_CV));
@@ -301,7 +305,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             end
             % Allocate cell array for the VF interpolants and create the interpolant
             obj.VF = cell(1, obj.Nstages+1);
-            obj.VF{end} = griddedInterpolant(obj.StateGrid, VFN, ...
+            obj.VF{end} = griddedInterpolant(obj.StateGridVect, VFN, ...
                 'linear');
             % Initialize Level Set function
             if obj.UseLevelSet
@@ -314,12 +318,12 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                         LevelSetN{n} = zeros(size(StateFullGrid{n}));
                     end
                 end
-                LevelSetN = cat(ndims(LevelSetN)+1,LevelSetN{:});
+                LevelSetN = cat(length(LevelSetN)+1,LevelSetN{:});
                 LevelSetN = max(LevelSetN,[],ndims(LevelSetN));
                 
                 % Allocate cell array for the LevelSet interpolants and create the interpolant
                 obj.LevelSet = cell(1, obj.Nstages+1);
-                obj.LevelSet{end} = griddedInterpolant(obj.StateGrid, LevelSetN, ...
+                obj.LevelSet{end} = griddedInterpolant(obj.StateGridVect, LevelSetN, ...
                     'linear');
                 
             end
@@ -445,7 +449,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                         %                         keyboard;
                     end
                     % Construct L approximating function for the current timestep
-                    obj.LevelSet{k} = griddedInterpolant(obj.StateGrid, ...
+                    obj.LevelSet{k} = griddedInterpolant(obj.StateGridVect, ...
                         LevelSetValue, 'linear');
                 end
                 
@@ -465,7 +469,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 end
                 
                 % Construct VF approximating function for the current timestep
-                obj.VF{k} = griddedInterpolant(obj.StateGrid, cost_opt, ...
+                obj.VF{k} = griddedInterpolant(obj.StateGridVect, cost_opt, ...
                     'linear');
                 % Break the dp bwd run if there are no feasible trajectories for
                 % the tail subproblem
