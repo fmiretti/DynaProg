@@ -113,6 +113,8 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %       the same length as the number of stages of the optimization
     %       problem.
     %       SafeMode: enables Safe Mode (see the documentation)
+    %       StoreControlMap: store the optimal cv as a function of
+    %       state for each stage
     %       StateName: specify state variables names in a string
     %       array. 
     %       ControlName: specify state variables names in a string
@@ -142,6 +144,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         CostName string
         ExogenousInput
         UseLevelSet logical = false;
+        StoreControlMap logical = false;
         VFInitialization char
         LevelSetInitialization char
         SafeMode = false;
@@ -151,6 +154,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         ControlProfile
         CostProfile
         AddOutputsProfile
+        ControlMap
     end
     properties (Access = private)
         % Computational grids, value and level-set function
@@ -189,6 +193,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 NameValuePair.CostName = [];
                 NameValuePair.ExogenousInput = [];
                 NameValuePair.UseLevelSet = false;
+                NameValuePair.StoreControlMap = false;
                 NameValuePair.SafeMode = false;
                 NameValuePair.VFInitialization = [];
                 NameValuePair.LevelSetInitialization = [];
@@ -218,6 +223,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             obj.CostName = NameValuePair.CostName;
             obj.ExogenousInput = NameValuePair.ExogenousInput;
             obj.UseLevelSet = NameValuePair.UseLevelSet;
+            obj.StoreControlMap = NameValuePair.StoreControlMap;
             obj.SafeMode = NameValuePair.SafeMode;
             obj.VFInitialization  = NameValuePair.VFInitialization;
             obj.LevelSetInitialization  = NameValuePair.LevelSetInitialization;
@@ -459,23 +465,37 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 % Set cost-to-go to inf for the unfeasible/unreachable CVs
                 cost(unFeas) = obj.myInf;
                 % Find optimal control as a function of the current state
-                [cost_opt, ~] = min(cost, [], vecdim_cv, 'linear');
+                [cost_opt, cv_opt] = min(cost, [], vecdim_cv, 'linear');
                 if obj.UseLevelSet
                     % For those state grid points where no feasible cv was found
                     % (isempty_UR), calculate the VF based on the cv that minimizes
                     % the level-set function.
                     cost_MinLevelSetCV = cost(MinLevelSetCV);
                     cost_opt(isempty_UR) = cost_MinLevelSetCV(isempty_UR);
+                    if obj.StoreControlMap
+                        cv_opt(isempty_UR) = MinLevelSetCV(isempty_UR);
+                    end
                 end
                 
                 % Construct VF approximating function for the current timestep
                 obj.VF{k} = griddedInterpolant(obj.StateGridVect, cost_opt, ...
                     'linear');
-                % Break the dp bwd run if there are no feasible trajectories for
+                
+                % Store cv map
+                if obj.StoreControlMap
+                    for n = 1:length(obj.N_CV)
+                        cv_opt_sub = cell(1, ndims(cost));
+                        [cv_opt_sub{:}] = ind2sub(size(cost), cv_opt);
+                        obj.ControlMap{n,k} = squeeze(obj.ControlGrid{n}(cv_opt_sub{n+length(obj.N_SV)}));
+                    end
+                end
+                
+                % Warn the user if there are no feasible trajectories for
                 % the tail subproblem
                 if all(cost_opt >= obj.myInf)
                     warning('The Cost-to-Go update has failed. Your problem might be overconstrained or the state variables grid might be too coarse.')
                 end
+                
             end
             % Progress Bar
             fprintf('%s%2d %%\n', ones(1,4)*8, 100);
@@ -575,7 +595,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     intVars_opt = [];
                 end
                 % Advance the simulation
-                [state, stageCost, unFeas, addout] = model_wrapper(obj, state, cv_opt, exoInput, intVars_opt);
+                [state, stageCost, ~, addout] = model_wrapper(obj, state, cv_opt, exoInput, intVars_opt);
                 StateProfileMat(:,k+1) = [state{:}]';
                 ControlProfileMat(:,k) = [cv_opt{:}]';
                 if ~isempty(addout)
