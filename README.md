@@ -1,4 +1,6 @@
 # DynaProg
+[![View DynaProg on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://www.mathworks.com/matlabcentral/fileexchange/84260-dynaprog)
+
 Solve multi-stage deterministic decision problems.
 
 ## Purpose
