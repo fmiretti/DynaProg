@@ -49,7 +49,7 @@ prob = DynaProg(x_grid, x_init, x_final, u_grid, Nint, ...
 prob = run(prob);
 
 % Add time vector to use in the plot
-prob.Time = time_s;
+prob.Time = [time_s; time_s(end)+dt];
 % Add SV, CV and cost names to be used in the plot
 prob.StateName = SVnames;
 prob.ControlName = CVnames;
