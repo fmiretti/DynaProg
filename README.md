@@ -25,5 +25,9 @@ DynaProg is available under the [MIT license](LICENSE.md).
 
 Some of the examples packaged with the toolbox make use of data derived from the [ADVISOR(R) Software](https://sourceforge.net/p/adv-vehicle-sim/code/HEAD/tree/).
 
+If you use this software for research purposes, please cite the accompanying paper:
+Federico Miretti, Daniela Misul, Ezio Spessa, DynaProg: Deterministic Dynamic Programming solver for finite horizon multi-stage decision problems, SoftwareX, Volume 14, 2021, 100690, ISSN 2352-7110, https://doi.org/10.1016/j.softx.2021.100690.
+
+
 ## Contact
 For all questions or suggestions, feel free to contact me at federico.miretti@polito.it.
