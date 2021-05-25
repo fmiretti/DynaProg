@@ -368,7 +368,8 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 else
                     for n = 1:length(sizes)
                         sizes_sv = sizes{n}(1:length(obj.N_SV));
-                        sizes_cv = sizes{n}(length(obj.N_SV)+1:end);
+                        sizes_cv = ones(1, length(obj.N_CV));
+                        sizes_cv(1:(length(sizes{n})-length(obj.N_SV))) = sizes{n}(length(obj.N_SV)+1:end);
                         wrong_size_cv = ~all(sizes_cv == obj.N_CV | sizes_cv == ones(size(obj.N_CV)));
                         wrong_size(n) = wrong_size_cv | ~isequal(sizes_sv, ones(size(obj.N_SV)));
                     end
