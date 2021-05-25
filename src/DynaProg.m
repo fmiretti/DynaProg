@@ -241,6 +241,8 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             end
             obj = backward(obj);
             obj = forward(obj);
+            % Reset warnings
+            warning('on', 'DynaProg:failedCostToGoUpdate')
         end
         
         function obj = create_grids(obj)
@@ -493,7 +495,8 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 % Warn the user if there are no feasible trajectories for
                 % the tail subproblem
                 if all(cost_opt >= obj.myInf)
-                    warning('The Cost-to-Go update has failed. Your problem might be overconstrained or the state variables grid might be too coarse.')
+                    warning('DynaProg:failedCostToGoUpdate', 'The Cost-to-Go update has failed. Your problem might be overconstrained or the state variables grid might be too coarse.')
+                    warning('off', 'DynaProg:failedCostToGoUpdate')
                 end
                 
             end
@@ -590,6 +593,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 end
                 cv_opt =  cellfun(@(x) x(index_opt), obj.ControlFullGrid, 'UniformOutput', false);
                 if obj.UseSplitModel
+                    intVars = cellfun(@(x) x .* ones(size(cost)), intVars, 'UniformOutput', false);
                     intVars_opt = cellfun(@(x) x(index_opt), intVars, 'UniformOutput', false);
                 else
                     intVars_opt = [];
