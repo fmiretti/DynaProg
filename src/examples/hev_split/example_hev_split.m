@@ -41,8 +41,7 @@ Nint = length(time_s);
 
 % Create DynaProg object
 prob = DynaProg(x_grid, x_init, x_final, u_grid, Nint, ...
- @(u, w) hev_ext(u, w, veh, fd, gb, eng, em), @(x, u, w, m) hev_int(x, u, w, m, batt, twc), 'ExogenousInput', w);
-% prob.VFInitialization = 'linear';
+ @(u, w) hev_ext(u, w, veh, fd, gb, eng, em), @(x, u, w, intVar) hev_int(x, u, w, intVar, batt, twc), 'ExogenousInput', w);
 
 %% Solve and visualize results
 % Solve the problem
