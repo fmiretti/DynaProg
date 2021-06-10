@@ -394,6 +394,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             fprintf("DP backward progress:    ")
             % Vector dimensions corresponding to CVs
             vecdim_cv = (length(obj.N_SV)+1):(length(obj.N_CV)+length(obj.N_SV));
+            
             % Backward Loop
             for k = obj.Nstages:-1:1
                 % Progress Bar
@@ -423,9 +424,20 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 else
                     exoInput = [];
                 end
+                
                 % State update
                 [states_next, stageCost, unFeasInt] = model_wrapper(obj, state, control, exoInput, intVars);
                 unFeasInt = logical(unFeasInt);
+                
+                % Model output checks
+                if k == obj.Nstages
+                    if iscell(stageCost)
+                        error('DynaProg:wrongFormatStageCost', "The stage cost must be returned as a numeric type, not a cell.")
+                    elseif ~isnum(stageCost)
+                        error('DynaProg:wrongFormatStageCost', "The stage cost must be returned as a numeric type.")
+                    end
+                end
+                
                 % feasibility: include external model unfeasibility
                 if obj.UseSplitModel
                     unFeas = unFeasInt | unfeasExt;
