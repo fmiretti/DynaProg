@@ -528,10 +528,12 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             obj.CostProfile(1) = 0;
             state_next = cell(1, length(obj.N_SV));
             exoInput = cell(1, size(obj.ExogenousInput, 2));
+            
             for k = 1:obj.Nstages
                 % Progress Bar
                 fprintf('%s%2d %%', ones(1,4)*8, floor((k-1)/obj.Nstages*100));
-                % Expand current state
+                
+                % Expand current state to the full cv grid
                 if obj.SafeMode
                     for n = 1:length(state)
                         state_next{n} = state{n} + zeros(size(obj.ControlFullGrid{1}));
@@ -559,12 +561,23 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 else
                     exoInput = [];
                 end
+                
                 % Evaluate state update and stage cost
                 [state_next, stageCost, unFeas] = model_wrapper(obj, state_next, control, exoInput, intVars);
                 unFeas = logical(unFeas);
                 if obj.UseSplitModel
                     unFeas = unFeas | unfeasExt;
                 end
+                
+                % Expand updated states and unfeas to the full cv grid
+                if ~obj.SafeMode
+                    for n = 1:length(state_next)
+                        state_next{n} = state_next{n} + zeros([ones(1, length(obj.N_SV)) obj.N_CV]);
+                    end
+                    stageCost = stageCost + zeros([ones(1, length(obj.N_SV)) obj.N_CV]);
+                    unFeas = unFeas | false([ones(1, length(obj.N_SV)) obj.N_CV]);
+                end
+                
                 % Get Level Set-minimizing CV
                 if obj.UseLevelSet
                     % Read L(k+1)
@@ -576,6 +589,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     % Find L-minimizing u
                     [~, MinLevelSetCV] = min(LevelSet_next, [], 'all', 'linear');
                 end
+                
                 % Read VF(k+1)
                 VF_next =  obj.VF{k+1}(state_next{:});
                 cost = stageCost + VF_next;
@@ -585,6 +599,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 end
                 % Set cost-to-go to inf for the unfeasible/unreachable CVs
                 cost(unFeas) = obj.myInf;
+                
                 % Find optimal control as a function of the current state
                 [~, index_opt] = min(cost, [], vecdim_cv, 'linear');
                 if obj.UseLevelSet
@@ -593,6 +608,8 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     index_opt(isempty_UR) = MinLevelSetCV;
                 end
                 cv_opt =  cellfun(@(x) x(index_opt), obj.ControlFullGrid, 'UniformOutput', false);
+                
+                % Extract the intermediate variables for the optimal cv
                 if obj.UseSplitModel
                     intVars = cellfun(@(x) x .* ones(size(cost)), intVars, 'UniformOutput', false);
                     intVars_opt = cellfun(@(x) x(index_opt), intVars, 'UniformOutput', false);
@@ -601,6 +618,8 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 end
                 % Advance the simulation
                 [state, stageCost, ~, addout] = model_wrapper(obj, state, cv_opt, exoInput, intVars_opt);
+                
+                % Update the profiles
                 StateProfileMat(:,k+1) = [state{:}]';
                 ControlProfileMat(:,k) = [cv_opt{:}]';
                 if ~isempty(addout)
@@ -608,7 +627,6 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                         obj.AddOutputsProfile{n}(k) = addout{n};
                     end
                 end
-                % optional
                 obj.CostProfile(k+1) = stageCost;
             end
             obj.StateProfile = num2cell(StateProfileMat,2);
