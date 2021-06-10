@@ -433,7 +433,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 if k == obj.Nstages
                     if iscell(stageCost)
                         error('DynaProg:wrongFormatStageCost', "The stage cost must be returned as a numeric type, not a cell.")
-                    elseif ~isnum(stageCost)
+                    elseif ~isnumeric(stageCost)
                         error('DynaProg:wrongFormatStageCost', "The stage cost must be returned as a numeric type.")
                     end
                 end
