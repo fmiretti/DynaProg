@@ -133,10 +133,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         SysName function_handle
         SysNameExt function_handle
         SysNameInt function_handle
-        StateGrid cell
-        StateInitial cell
-        StateFinal cell = [];
-        ControlGrid cell
+        StateGrid 
+        StateInitial
+        StateFinal = [];
+        ControlGrid
         Nstages
         % Constructor: Name-Value pairs
         StateName string
