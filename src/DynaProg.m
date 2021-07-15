@@ -823,6 +823,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             
             if compatibility_mode
                 arrayfun(@(x) set(x, 'FontSize', 10), ax)
+                t = gcf;
             else
                 arrayfun(@(x) set(x, 'FontSize', 10), t.Children)
                 t.TileSpacing = 'compact';
@@ -1016,7 +1017,11 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 [A, ind{n}] = min(A, [], vecdim(n));
             end
             
-            [subs{1:N_SV}] = ind2sub(dims, reshape(1:prod(dims(1:N_SV)), dims(1:N_SV)));
+            if N_SV == 1
+                subs{1} = (1:dims(1))';
+            elseif N_SV > 1
+                [subs{1:N_SV}] = ind2sub(dims, reshape(1:prod(dims(1:N_SV)), dims(1:N_SV)));
+            end
             
             subs{N_SV+1} = ind{1};
             for n=1:(length(ind)-1)
