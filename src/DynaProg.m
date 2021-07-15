@@ -738,6 +738,13 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             %   plot(prob) plots state variables, control variables and
             %   cumulative cost profiles.
             
+            % Check the MATLAB version
+            if verLessThan('matlab','9.7') % aka 2019b
+                compatibility_mode = true;
+            else
+                compatibility_mode = false;
+            end
+            
             if isempty(obj.StateProfile)
                 error('DynaProg:notSolved', 'This problem structure does not contain any solution. Run the optimization to produce results.')
             end
@@ -745,11 +752,21 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             ncols = lcm(length(obj.N_SV), length(obj.N_CV));
             sv_span = ncols/length(obj.N_SV);
             cv_span = ncols/length(obj.N_CV);
-            t = tiledlayout(3, ncols);
+            
+            if compatibility_mode
+                subplot(3, ncols, 1);
+            else
+                t = tiledlayout(3, ncols);
+            end
+            
             ax = [];
             % Plot SV profiles
             for n = 1:length(obj.N_SV)
-                ax(end+1) = nexttile([1 sv_span]); %#ok<*AGROW>
+                if compatibility_mode
+                    ax(end+1) = subplot(3, ncols, [1 + sv_span*(n-1) sv_span*n]);
+                else
+                    ax(end+1) = nexttile([1 sv_span]); %#ok<*AGROW>
+                end
                 if isempty(obj.Time)
                     plot(obj.StateProfile{n}, 'LineWidth', 1.5)
                 else
@@ -760,7 +777,11 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             end
             % Plot CV profiles
             for n = 1:length(obj.N_CV)
-                ax(end+1) = nexttile([1 cv_span]);
+                if compatibility_mode
+                    ax(end+1) = subplot(3, ncols, [ncols + 1 + cv_span*(n-1), ncols + cv_span*n]);
+                else
+                    ax(end+1) = nexttile([1 cv_span]); %#ok<*AGROW>
+                end
                 if isempty(obj.Time)
                     plot(obj.ControlProfile{n}, 'LineWidth', 1.5)
                 else
@@ -770,7 +791,11 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 axis tight
             end
             % Plot cumulative cost profile
-            ax(end+1) = nexttile([1 ncols]);
+            if compatibility_mode
+                ax(end+1) = subplot(3, ncols, [ncols*2 + 1, ncols*3]);
+            else
+                ax(end+1) = nexttile([1 ncols]); %#ok<*AGROW>
+            end
             if isempty(obj.Time)
                 cumCost = cumsum(obj.CostProfile);
                 plot(cumCost, 'LineWidth', 1.5)
@@ -780,15 +805,29 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             end
             title(obj.CostName)
             axis tight
+            
             % Finalize
-            if isempty(obj.Time)
-                xlabel(t, 'Stage number')
+            if compatibility_mode
+                if isempty(obj.Time)
+                    xlabel(ax(end), 'Stage number')
+                else
+                    xlabel(ax(end), 'Time')
+                end
             else
-                xlabel(t, 'Time')
+                if isempty(obj.Time)
+                    xlabel(t, 'Stage number')
+                else
+                    xlabel(t, 'Time')
+                end
             end
-            arrayfun(@(x) set(x, 'FontSize', 10), t.Children)
-            t.TileSpacing = 'compact';
-            t.Padding = 'compact';
+            
+            if compatibility_mode
+                arrayfun(@(x) set(x, 'FontSize', 10), ax)
+            else
+                arrayfun(@(x) set(x, 'FontSize', 10), t.Children)
+                t.TileSpacing = 'compact';
+                t.Padding = 'compact';
+            end
             linkaxes(ax,'x')
         end
         
