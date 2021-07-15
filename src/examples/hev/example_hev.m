@@ -37,9 +37,6 @@ Nint = length(time_s);
 prob = DynaProg(x_grid, x_init, x_final, u_grid, Nint, ...
  @(x, u, w) hev(x, u, w, veh, fd, gb, eng, em, batt), 'ExogenousInput', w);
 
-% prob = DynaProg(x_grid, x_init, x_final, u_grid, Nint, ...
-%  @(x, u, w) hev(x, u, w, veh, fd, gb, eng, em, batt), 'ExogenousInput', w, 'UseLevelSet', true, 'VFInitialization', 'linear');
-
 %% Solve and visualize results
 % Solve the problem
 prob = run(prob);
@@ -58,8 +55,12 @@ emTrq = prob.AddOutputsProfile{2};
 % Plot results
 figure
 t = plot(prob);
-nexttile(t, 5)
-plot(time_s, engTrq, 'LineWidth', 1.5)
-hold on
-plot(time_s, emTrq, 'LineWidth', 1.5)
-legend('Engine torque, Nm', 'EM torque, Nm', 'FontSize', 10)
+
+% Edit the plot (only if your MATLAB version supports 'tiledlayout')
+if ~verLessThan('matlab','9.6')
+    nexttile(t, 5)
+    plot(time_s, engTrq, 'LineWidth', 1.5)
+    hold on
+    plot(time_s, emTrq, 'LineWidth', 1.5)
+    legend('Engine torque, Nm', 'EM torque, Nm', 'FontSize', 10)
+end

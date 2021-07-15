@@ -62,11 +62,3 @@ noxTailpipeFlwRate = [prob.AddOutputsProfile{2}.nox];
 
 figure
 t = plot(prob);
-nexttile(t, 5)
-plot(prob.Time(1:end-1), fc_grams.*1e-2)
-hold on
-plot(prob.Time(1:end-1), hcTailpipeFlwRate)
-plot(prob.Time(1:end-1), coTailpipeFlwRate)
-plot(prob.Time(1:end-1), noxTailpipeFlwRate)
-legend('Fuel consumption, g/s \cdot 10^{-2}', 'Tailpipe HC, g/s', 'Tailpipe CO, g/s', ...
-    'Tailpipe NOx, g/s', 'FontSize', 10)
