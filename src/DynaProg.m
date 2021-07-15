@@ -173,6 +173,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         UseExoInput logical = false
         NumAddOutputs double = 0 % Number of additional outputs in the system function
         UseSplitModel logical
+        minfun = @(X, vecdim) min(X, [], vecdim, 'linear') % min function for 2019a+
     end
     
     methods
@@ -257,6 +258,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         end
         
         function obj = run(obj)
+            % Check the MATLAB version
+            if verLessThan('matlab','9.6') % aka 2019a
+                obj.minfun =  @(X, vecdim) obj.min_compatibility(X, vecdim);
+            end
             % Run the optimization algorithm
             obj = create_grids(obj);
             if obj.UseSplitModel
@@ -487,7 +492,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     % set LevelSet_next to inf for the unfeasible CVs
                     LevelSet_next(unFeas) = obj.myInf;
                     % Update level-set function and find L-minimizing CVs
-                    [LevelSetValue, MinLevelSetCV] = min(LevelSet_next, [], vecdim_cv, 'linear');
+                    [LevelSetValue, MinLevelSetCV] = obj.minfun(LevelSet_next, vecdim_cv);
                     % Check if the set of reachable CVs U^R(x_k) (CVs that
                     % lead to a reachable state) is empty. Note: U^R(x_k) is
                     % a subset of U(x_k) (set of feasible CVs).
@@ -507,7 +512,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 % Set cost-to-go to inf for the unfeasible/unreachable CVs
                 cost(unFeas) = obj.myInf;
                 % Find optimal control as a function of the current state
-                [cost_opt, cv_opt] = min(cost, [], vecdim_cv, 'linear');
+                [cost_opt, cv_opt] = obj.minfun(cost, vecdim_cv);
                 
                 if obj.UseLevelSet
                     % For those state grid points where no feasible cv was found
@@ -625,9 +630,9 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     % set LevelSet_next to inf for the unfeasible CVs
                     LevelSet_next(unFeas) = obj.myInf;
                     % Determine if U^R(x_k) is empty
-                    isempty_UR = all(LevelSet_next > 0, 'all');
+                    isempty_UR = all(LevelSet_next(:) > 0);
                     % Find L-minimizing u
-                    [~, MinLevelSetCV] = min(LevelSet_next, [], 'all', 'linear');
+                    [~, MinLevelSetCV] = obj.minfun(LevelSet_next, vecdim_cv);
                 end
                 
                 % Read VF(k+1)
@@ -641,7 +646,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 cost(unFeas) = obj.myInf;
                 
                 % Find optimal control as a function of the current state
-                [~, index_opt] = min(cost, [], vecdim_cv, 'linear');
+                [~, index_opt] = obj.minfun(cost, vecdim_cv);
                 if obj.UseLevelSet
                     % If no reachable cv was found (isempty_UR), select the cv that
                     % minimizes the level-set function.
@@ -958,6 +963,31 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     end
     
     methods (Static)
+        
+        function [A, linear_index] = min_compatibility(A, vecdim)
+            %min_compatibilty min function for releases 2018b and lower
+            % Returns the same as
+            %   min(A, [], vecdim, 'linear') from 2019a+
+            
+            ind = cell(1, length(vecdim));
+            N_SV = (ndims(A) - length(vecdim));
+            subs = cell(1, ndims(A));
+            dims = size(A);
+            for n = length(ind):-1:1
+                [A, ind{n}] = min(A, [], vecdim(n));
+            end
+            
+            [subs{1:N_SV}] = ind2sub(dims, reshape(1:prod(dims(1:N_SV)), dims(1:N_SV)));
+            
+            subs{N_SV+1} = ind{1};
+            for n=1:(length(ind)-1)
+                subs{N_SV+n+1} = ind{n+1}( sub2ind( size(ind{n+1}), subs{1:n+N_SV} ) );
+            end
+            
+            linear_index = sub2ind(dims, subs{:});
+            
+        end
+        
         function modelNameErr(ME)
             switch ME.identifier
                 case 'MATLAB:narginout:functionDoesnotExist'
