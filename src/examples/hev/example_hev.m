@@ -7,7 +7,7 @@
 %% Set up the problem
 clear
 % State variable grid
-SVnames = "SOC";
+SVnames = 'SOC';
 x_grid = {0.4:0.001:0.7};
 % Initial state 
 x_init = {0.6};
@@ -15,7 +15,7 @@ x_init = {0.6};
 x_final = {[0.599 0.601]};
 
 % Control variable grid
-CVnames = ["Gear Number", "Torque split"];
+CVnames = {'Gear Number', 'Torque split'};
 u1_grid = [1 2 3 4 5];
 u2_grid = -1:0.1:1;
 u_grid = {u1_grid, u2_grid};
@@ -49,7 +49,7 @@ prob.Time = [time_s; time_s(end)+dt];
 % Add SV, CV and cost names to be used in the plot
 prob.StateName = SVnames;
 prob.ControlName = CVnames;
-prob.CostName = "Fuel Consumption, g";
+prob.CostName = 'Fuel Consumption, g';
 
 % Retrieve our additional outputs
 engTrq = prob.AddOutputsProfile{1};

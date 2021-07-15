@@ -8,7 +8,7 @@
 %% Set up the problem
 clear
 % State variables grids
-SVnames = ["SOC", "TWC Temperature"];
+SVnames = {'SOC', 'TWC Temperature'};
 x1_grid = 0.4:0.001:0.7;
 x2_grid = 200:10:600;
 x_grid = {x1_grid, x2_grid};
@@ -21,7 +21,7 @@ x1_final = [0.599 0.601];
 x2_final = [];
 x_final = {x1_final, x2_final};
 % Control variables grids
-CVnames = ["Gear Number", "Torque split"];
+CVnames = {'Gear Number', 'Torque split'};
 u1_grid = [1 2 3 4 5];
 u2_grid = -1:0.1:1;
 u_grid = {u1_grid, u2_grid};

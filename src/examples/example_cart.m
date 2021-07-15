@@ -8,7 +8,7 @@ velocity_final = 0;
 time_final = 1;
 
 % State variables grid
-SVnames = ["Position", "Speed"];
+SVnames = {'Position', 'Speed'};
 x1_grid = 0:0.01:1;
 x2_grid = -0.5:0.01:1;
 x_grid = {x1_grid, x2_grid};
@@ -24,7 +24,7 @@ x2_final = [velocity_final-0.05 velocity_final+0.05];
 
 x_final = {x1_final, x2_final};
 % Control variable grid
-CVnames = "Thrust";
+CVnames = 'Thrust';
 u_grid = {-5:0.05:5};
 % Number of stages (time intervals)
 dt = 0.1;
@@ -44,7 +44,7 @@ prob.Time = time;
 % Add SV, CV and cost names to be used in the plot
 prob.StateName = SVnames;
 prob.ControlName = CVnames;
-prob.CostName = "Energy";
+prob.CostName = 'Energy';
 % Plot results
 figure
 plot(prob)

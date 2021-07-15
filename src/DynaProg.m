@@ -197,9 +197,9 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             % - sysname, name-value pairs
             % - extsysname, intsysname, name-value pairs
             if isempty(varargin)
-                    error('DynaProg:wrongNumInputs', "You must specify at " +...
-                        "least six positional arguments. Check the " +...
-                        "syntax guide.")
+                    error('DynaProg:wrongNumInputs', ['You must specify at '...
+                        'least six positional arguments. Check the '...
+                        'syntax guide.'])
             else
                 if isa(varargin{1}, 'function_handle') && (length(varargin) == 1 || ~isa(varargin{2}, 'function_handle') )
                     obj.UseSplitModel = false;
@@ -211,10 +211,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     obj.SysNameInt = varargin{2};
                     NameValuePair = varargin(3:end);
                 else
-                    error('DynaProg:wrongSysName', "You must specify one " +...
-                        "system function as the sixth positional argument or " +...
-                        "two system functions as the sixth and seventh " + ...
-                        "arguments. Specify them as function handle(s).")
+                    error('DynaProg:wrongSysName', ['You must specify one '...
+                        'system function as the sixth positional argument or '...
+                        'two system functions as the sixth and seventh '...
+                        'arguments. Specify them as function handle(s).'])
                 end
             end
             
@@ -229,16 +229,16 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             nvpValues = NameValuePair(2:2:end);
             % Check that the NameValuePair cell array is even
             if mod(length(NameValuePair), 2) ~= 0
-                error('DynaProg:oddNVP', "Additional settings must be " +...
-                        "specified as name-value pairs.")
+                error('DynaProg:oddNVP', ['Additional settings must be '...
+                        'specified as name-value pairs.'])
             end
             % Check that the NameValuePair names are string or char array
             for n=1:length(nvpNames)
                 if ~ischar(nvpNames{n}) && ~(isstring(nvpNames{n}) && isscalar(nvpNames{n}))
-                    error('DynaProg:notStringNVP', "Additional settings must be " +...
-                        "specified as name-value pairs. Specify each " +...
-                        "property name as a string or character array " +...
-                        "followed by its value.")
+                    error('DynaProg:notStringNVP', ['Additional settings must be '...
+                        'specified as name-value pairs. Specify each '...
+                        'property name as a string or character array '...
+                        'followed by its value.'])
                 end
             end
             % Assign the NVP properties
@@ -276,11 +276,13 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             if ~isempty(obj.StateGrid)
                 obj = check_StateFinal(obj);
                 if length(obj.StateFinal) ~= length(obj.StateGrid)
-                    error('DynaProg:wrongSizeStateFinal', "You must specify one final condition for each of the state variables.");
+                    error('DynaProg:wrongSizeStateFinal', ['You must specify '...
+                        'one final condition for each of the state variables.']);
                 end
             end
             if length(obj.StateInitial) ~= length(obj.StateGrid)
-                error('DynaProg:wrongSizeStateInit', "You must specify one initial condition for each of the state variables.");
+                error('DynaProg:wrongSizeStateInit', ['You must specify one '...
+                    'initial condition for each of the state variables.']);
             end
             if isempty(obj.VFInitialization)
                 if obj.UseLevelSet
@@ -385,7 +387,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 % Create intVars for the current timestep
                 [obj.IntermediateVars{k}, obj.unFeasExt{k}] = obj.SysNameExt(control, exoInput);
                 % Check intermediate variables size
-                sizes = cellfun(@(x) size(x), obj.IntermediateVars{k}, "UniformOutput", false);
+                sizes = cellfun(@(x) size(x), obj.IntermediateVars{k}, 'UniformOutput', false);
                 if obj.SafeMode
                     wrong_size = ~cellfun(@(x) isequal(x, obj.N_CV), sizes);
                 else
@@ -414,7 +416,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             end
                 
             % Progress Bar
-            fprintf("DP backward progress:    ")
+            fprintf('DP backward progress:    ')
             % Vector dimensions corresponding to CVs
             vecdim_cv = (length(obj.N_SV)+1):(length(obj.N_CV)+length(obj.N_SV));
             
@@ -455,9 +457,11 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 % Model output checks
                 if k == obj.Nstages
                     if iscell(stageCost)
-                        error('DynaProg:wrongFormatStageCost', "The stage cost must be returned as a numeric type, not a cell.")
+                        error('DynaProg:wrongFormatStageCost', ['The stage '...
+                            'cost must be returned as a numeric type, not a cell.'])
                     elseif ~isnumeric(stageCost)
-                        error('DynaProg:wrongFormatStageCost', "The stage cost must be returned as a numeric type.")
+                        error('DynaProg:wrongFormatStageCost', ['The stage '...
+                            'cost must be returned as a numeric type.'])
                     end
                 end
                 
@@ -504,6 +508,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 cost(unFeas) = obj.myInf;
                 % Find optimal control as a function of the current state
                 [cost_opt, cv_opt] = min(cost, [], vecdim_cv, 'linear');
+                
                 if obj.UseLevelSet
                     % For those state grid points where no feasible cv was found
                     % (isempty_UR), calculate the VF based on the cv that minimizes
@@ -553,7 +558,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 vecdim_cv = (1:length(obj.N_CV)) + length(obj.N_SV);
             end
             % Progress Bar
-            fprintf("DP forward progress:    ")
+            fprintf('DP forward progress:    ')
             % Preallocate profiles
             StateProfileMat = zeros(length(obj.StateGrid), obj.Nstages+1);
             StateProfileMat(:,1) = [obj.StateInitial{:}];
@@ -827,7 +832,9 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 StateGridErr = true;
             end
             if StateGridErr
-                error('DynaProg:invalidStateGrid', "StateGrid must be a vector (if the state is scalar) or a cell array of vectors (if the state is a vector).");
+                error('DynaProg:invalidStateGrid', ['StateGrid must be a '...
+                    'vector (if the state is scalar) or a cell array of '...
+                    'vectors (if the state is a vector).']);
             end
             % Shift dimensions
             for n = 1:length(obj.StateGrid)
@@ -841,7 +848,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 obj.StateInitial = num2cell(StateInitial);
             end
             if any(cellfun(@(x) (~isnumeric(x) && ~islogical(x)) || ~isscalar(x), obj.StateInitial))
-                error('DynaProg:invalidStateInit', "StateInitial must be a cell array of scalar values.");
+                error('DynaProg:invalidStateInit', 'StateInitial must be a cell array of scalar values.');
             end
         end
         function obj = set.StateFinal(obj, StateFinal)
@@ -853,13 +860,13 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 obj.StateFinal = {StateFinal};
             end
             if any(cellfun(@(x) (~isnumeric(x) && ~islogical(x)) || (length(x)~=2 && ~isempty(x)), obj.StateFinal))
-                error('DynaProg:invalidStateFinal', "StateFinal must be a cell array of two-element numeric vectors or empty values.");
+                error('DynaProg:invalidStateFinal', 'StateFinal must be a cell array of two-element numeric vectors or empty values.');
             end
             if any(cellfun(@(x) ~isempty(x) && x(2) < x(1), obj.StateFinal))
-                error('DynaProg:wrongOrderStateFinal', "Each element of StateFinal must contain the lower and upper bound, in this order.");
+                error('DynaProg:wrongOrderStateFinal', 'Each element of StateFinal must contain the lower and upper bound, in this order.');
             end
             if any(cellfun(@(x) ~isempty(x) && (isnan(x(1)) || isnan(x(2))), obj.StateFinal))
-                error('DynaProg:nanStateFinal', "StateFinal does not accept NaNs.");
+                error('DynaProg:nanStateFinal', 'StateFinal does not accept NaNs.');
             end
         end
         function obj = set.ControlGrid(obj, ControlGrid)
@@ -880,7 +887,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 ControlGridErr = true;
             end
             if ControlGridErr
-                error('DynaProg:invalidControlGrid', "ControlGrid must be a vector (if the there is only one control variable) or a cell array of numeric vectors (if there are more).");
+                error('DynaProg:invalidControlGrid', 'ControlGrid must be a vector (if the there is only one control variable) or a cell array of numeric vectors (if there are more).');
             end
         end
         function obj = set.StateName(obj, StateName)
@@ -890,7 +897,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 obj.StateName = StateName;
             end
             if length(obj.StateName) ~= length(obj.StateGrid)
-                error('DynaProg:wrongSizeStateName', 'StateName must be a string array specifying one string for each of the state variables.')
+                error('DynaProg:wrongSizeStateName', 'StateName must be a string array (or cell array of character vectors) specifying one string for each of the state variables.')
             end
         end
         function obj = set.ControlName(obj, ControlName)
@@ -900,12 +907,12 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 obj.ControlName = ControlName;
             end
             if length(obj.ControlName) ~= length(obj.ControlGrid)
-                error('DynaProg:wrongSizeControlNames', 'ControlNames must be a string array specifying one string for each of the control variables.')
+                error('DynaProg:wrongSizeControlNames', 'ControlNames must be a string array (or cell array of character vectors) specifying one string for each of the control variables.')
             end
         end
         function obj = set.CostName(obj, CostName)
             if isempty(CostName)
-                obj.CostName = "Cumulative cost";
+                obj.CostName = 'Cumulative cost';
             else
                 obj.CostName = CostName;
             end
@@ -944,7 +951,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 func_name = name;
             end
             if nargout(func_name) < 3
-                error('DynaProg:invalidModelOutput', "The function model has a wrong number of outputs.\n")
+                error('DynaProg:invalidModelOutput', 'The function model has a wrong number of outputs.\n')
             end
             obj.NumAddOutputs = nargout(func_name) - 3;
         end
