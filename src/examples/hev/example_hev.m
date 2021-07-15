@@ -37,6 +37,9 @@ Nint = length(time_s);
 prob = DynaProg(x_grid, x_init, x_final, u_grid, Nint, ...
  @(x, u, w) hev(x, u, w, veh, fd, gb, eng, em, batt), 'ExogenousInput', w);
 
+% prob = DynaProg(x_grid, x_init, x_final, u_grid, Nint, ...
+%  @(x, u, w) hev(x, u, w, veh, fd, gb, eng, em, batt), 'ExogenousInput', w, 'UseLevelSet', true, 'VFInitialization', 'linear');
+
 %% Solve and visualize results
 % Solve the problem
 prob = run(prob);

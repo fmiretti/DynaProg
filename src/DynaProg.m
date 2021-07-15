@@ -126,7 +126,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %   
     %   Author: Federico Miretti
     %
-    % '<a href="matlab:web html/index.html">Apri qui</a>'
+    % '<a href="matlab:web html/index.html">Open the full documentation</a>'
     
     properties
         % Constructor: Main properties
@@ -138,17 +138,17 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         StateFinal = [];
         ControlGrid
         Nstages
-        % Constructor: Name-Value pairs
-        StateName string
-        ControlName string
-        CostName string
-        ExogenousInput
+        % Constructor: Name-Value pair arguments
+        StateName string = [];
+        ControlName string = [];
+        CostName string = [];
+        ExogenousInput = [];
         UseLevelSet logical = false;
         StoreControlMap logical = false;
-        VFInitialization char
-        LevelSetInitialization char
         SafeMode = false;
-        Time double
+        VFInitialization char = [];
+        LevelSetInitialization char = [];
+        Time double = [];
         % Results 
         StateProfile
         ControlProfile
@@ -170,67 +170,90 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         LevelSet % Level-Set function
         IntermediateVars
         unFeasExt
-        UseExoInput
-        NumAddOutputs
+        UseExoInput logical = false
+        NumAddOutputs double = 0 % Number of additional outputs in the system function
         UseSplitModel logical
     end
     
     methods
-        function obj = DynaProg(StateGrid, StateInitial, StateFinal, ControlGrid, Nstages, SysName, NameValuePair)
-            arguments
-                StateGrid
-                StateInitial
-                StateFinal
-                ControlGrid
-                Nstages
-            end
-            arguments(Repeating)
-                SysName function_handle
-            end
-            arguments
-                NameValuePair.StateName = [];
-                NameValuePair.ControlName = [];
-                NameValuePair.CostName = [];
-                NameValuePair.ExogenousInput = [];
-                NameValuePair.UseLevelSet = false;
-                NameValuePair.StoreControlMap = false;
-                NameValuePair.SafeMode = false;
-                NameValuePair.VFInitialization = [];
-                NameValuePair.LevelSetInitialization = [];
-                NameValuePair.Time = [];
-            end
-            % Set SysName(s)
-            switch length(SysName)
-                case 1
+        function obj = DynaProg(StateGrid, StateInitial, StateFinal, ControlGrid, Nstages, varargin)
+            %Constructor method
+            % Positional arguments:
+            %   StateGrid
+            %   StateInitial
+            %   StateFinal
+            %   ControlGrid
+            %   Nstages
+            % Repeating arguments:
+            %   SysName
+            %  or
+            %   SysNameExt
+            %   SysNameInt
+            
+            % Handle varargin (Set SysName(s), extract nvps)
+            % varargin contains either:
+            % - sysname
+            % - extsysname, intsysname
+            % - sysname, name-value pairs
+            % - extsysname, intsysname, name-value pairs
+            if isempty(varargin)
+                    error('DynaProg:wrongNumInputs', "You must specify at " +...
+                        "least six positional arguments. Check the " +...
+                        "syntax guide.")
+            else
+                if isa(varargin{1}, 'function_handle') && (length(varargin) == 1 || ~isa(varargin{2}, 'function_handle') )
                     obj.UseSplitModel = false;
-                    obj.SysName = SysName{1};
-                case 2
+                    obj.SysName = varargin{1};
+                    NameValuePair = varargin(2:end);
+                elseif isa(varargin{1}, 'function_handle') && isa(varargin{2}, 'function_handle')
                     obj.UseSplitModel = true;
-                    obj.SysNameExt = SysName{1};
-                    obj.SysNameInt = SysName{2};
-                otherwise
-                    error("Do not specify more than two model functions.")
+                    obj.SysNameExt = varargin{1};
+                    obj.SysNameInt = varargin{2};
+                    NameValuePair = varargin(3:end);
+                else
+                    error('DynaProg:wrongSysName', "You must specify one " +...
+                        "system function as the sixth positional argument or " +...
+                        "two system functions as the sixth and seventh " + ...
+                        "arguments. Specify them as function handle(s).")
+                end
             end
+            
             % Set other mandatory arguments
             obj.StateGrid = StateGrid;
             obj.StateInitial = StateInitial;
             obj.StateFinal = StateFinal;
             obj.ControlGrid = ControlGrid;
             obj.Nstages = Nstages;
-            % Optional inputs
-            obj.StateName = NameValuePair.StateName;
-            obj.ControlName = NameValuePair.ControlName;
-            obj.CostName = NameValuePair.CostName;
-            obj.ExogenousInput = NameValuePair.ExogenousInput;
-            obj.UseLevelSet = NameValuePair.UseLevelSet;
-            obj.StoreControlMap = NameValuePair.StoreControlMap;
-            obj.SafeMode = NameValuePair.SafeMode;
-            obj.VFInitialization  = NameValuePair.VFInitialization;
-            obj.LevelSetInitialization  = NameValuePair.LevelSetInitialization;
-            obj.Time = NameValuePair.Time;
+            % Optional inputs (nvps)
+            nvpNames = NameValuePair(1:2:end);
+            nvpValues = NameValuePair(2:2:end);
+            % Check that the NameValuePair cell array is even
+            if mod(length(NameValuePair), 2) ~= 0
+                error('DynaProg:oddNVP', "Additional settings must be " +...
+                        "specified as name-value pairs.")
+            end
+            % Check that the NameValuePair names are string or char array
+            for n=1:length(nvpNames)
+                if ~ischar(nvpNames{n}) && ~(isstring(nvpNames{n}) && isscalar(nvpNames{n}))
+                    error('DynaProg:notStringNVP', "Additional settings must be " +...
+                        "specified as name-value pairs. Specify each " +...
+                        "property name as a string or character array " +...
+                        "followed by its value.")
+                end
+            end
+            % Assign the NVP properties
+            for n = 1:length(nvpNames)
+                obj.(nvpNames{n}) = nvpValues{n};
+            end
             % Set others
             obj.N_SV = cellfun(@(x) length(x), obj.StateGrid);
             obj.N_CV = cellfun(@(x) length(x), obj.ControlGrid);
+            if isempty(obj.StateName)
+                obj.StateName = [];
+            end
+            if isempty(obj.ControlName)
+                obj.ControlName = [];
+            end
         end
         
         function obj = run(obj)
@@ -911,6 +934,8 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     
     methods (Access = private)
         function obj = checkAddOutputs(obj, name)
+            % Determine the number of additional outputs declared in the
+            % user's system function signature
             info = functions(name);
             if strcmp(info.type, 'anonymous')
                 func_name = regexp(info.function, '\)\w*\(', 'match');
