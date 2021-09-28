@@ -106,23 +106,31 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %   parameter/value pairs.
     %
     %   Valid properties are:
-    %       UseLevelSet: Enable Level-Set DP. Defaults to false if
-    %       unspecified.
+    %       UseLevelSet: enable Level-Set DP. Defaults to false if
+    %           unspecified.
     %       ExogenousInput: specify exogenous inputs required for your
-    %       model in a cell array of numeric vectors. Each vector must have
-    %       the same length as the number of stages of the optimization
-    %       problem.
+    %           model in a cell array of numeric vectors. Each vector must have
+    %           the same length as the number of stages of the optimization
+    %           problem.
     %       SafeMode: enables Safe Mode (see the documentation)
     %       StoreControlMap: store the optimal cv as a function of
-    %       state for each stage
+    %           state for each stage
     %       StateName: specify state variables names in a string
-    %       array. 
+    %           array. 
     %       ControlName: specify state variables names in a string
-    %       array.
+    %           array.
     %       CostName: specify the cumulative cost name as a string.
     %       Time: specify time instead of stages. This property is only
-    %       used in the plots produced with the plot method. It does not 
-    %       affect the optimization.
+    %           used in the plots produced with the plot method. It does not 
+    %           affect the optimization.
+    %       VFInitialization: specify how final state values outside of 
+    %           the final state constraints bounds should be penalized. Set
+    %           to 'ridge' to penalize them with a myInf term. Set to
+    %           'linear' to penalize them with a term proportional to the 
+    %           distance from the bounds.
+    %       VFFactors: if VFInitialization, VFFactors define the
+    %           proportionality factor for each sv. Specify as a numeric
+    %           array.
     %   
     %   Author: Federico Miretti
     %
@@ -146,9 +154,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         UseLevelSet logical = false;
         StoreControlMap logical = false;
         SafeMode = false;
+        Time double = [];
         VFInitialization char = [];
         LevelSetInitialization char = [];
-        Time double = [];
+        VFFactors double;
         % Results 
         StateProfile
         ControlProfile
@@ -258,6 +267,9 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             if isempty(obj.ControlName)
                 obj.ControlName = [];
             end
+            if isempty(obj.VFFactors)
+                obj.VFFactors = [];
+            end
         end
         
         function obj = run(obj)
@@ -328,13 +340,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     case 'linear' %VFN is proportional to the distance from the target set
                         for n = 1:length(obj.StateGrid)
                             if ~isempty(obj.StateFinal{n})
-                                VFN = VFN + max(obj.StateFinal{n}(1)-StateFullGrid{n}, 0) + max(StateFullGrid{n}-obj.StateFinal{n}(2), 0);
+                                VFN = VFN + obj.VFFactors(n) .* ( max(obj.StateFinal{n}(1)-StateFullGrid{n}, 0) + max(StateFullGrid{n}-obj.StateFinal{n}(2), 0) );
                             end
                         end
                         VFN(isinf(VFN)) = 0;
-                        if ~obj.UseLevelSet
-                            VFN = VFN.*1e1;
-                        end
                     case 'ridge' % VFN is inf outside the target set
                         for n=1:length(obj.StateGrid)
                             if ~isempty(obj.StateFinal{n})
@@ -837,7 +846,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         
     end
     
-    % Set methods
+    % Set/get methods
     methods
         function obj = set.SysNameInt(obj, name)
             try
@@ -983,6 +992,18 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     obj.ExogenousInput(:,n) = ExogenousInput{n}(:);
                     obj.UseExoInput = true;
                 end
+            end
+        end
+        function obj = set.VFFactors(obj, VFFactors)
+            if isempty(VFFactors)
+                for n = 1:length(obj.StateGrid)
+                    obj.VFFactors(n) = abs(obj.StateGrid{n}(end) - obj.StateGrid{n}(1)) * 10;
+                end
+            else
+                obj.VFFactors = VFFactors;
+            end
+            if length(obj.VFFactors) ~= length(obj.StateGrid)
+                error('DynaProg:wrongSizeVFFactors', 'VFFactors must be a numeric array specifying one value for each of the state variables.')
             end
         end
     end

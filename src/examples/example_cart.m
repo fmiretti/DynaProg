@@ -19,8 +19,6 @@ x_init = {x1_init, x2_init};
 % Final state constraints
 x1_final = [pos_final-0.05 pos_final+0.05];
 x2_final = [velocity_final-0.05 velocity_final+0.05];
-% x1_final = [pos_final pos_final];
-% x2_final = [velocity_final velocity_final];
 
 x_final = {x1_final, x2_final};
 % Control variable grid
