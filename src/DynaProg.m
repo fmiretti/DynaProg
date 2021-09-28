@@ -156,7 +156,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         AddOutputsProfile
         ControlMap
     end
-    properties (Access = private)
+    properties (Access = protected)
         % Computational grids, value and level-set function
         N_SV double % total size of the state variables grids
         N_CV double % total size of the control variables grids
@@ -174,6 +174,9 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         NumAddOutputs double = 0 % Number of additional outputs in the system function
         UseSplitModel logical
         minfun = @(X, vecdim) min(X, [], vecdim, 'linear') % min function for 2019a+
+    end
+    properties (SetAccess = private)
+        Version = "1.5";
     end
     
     methods
