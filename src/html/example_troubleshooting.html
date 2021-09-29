@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge,IE=9,chrome=1"><meta name="generator" content="MATLAB 2021a"><title>Troubleshooting the HEV with a Three-Way Catalyst example</title><style type="text/css">.rtcContent { padding: 30px; } .S0 { margin: 3px 10px 5px 4px; padding: 0px; line-height: 28.8px; min-height: 0px; white-space: pre-wrap; color: rgb(213, 80, 0); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 24px; font-weight: 400; text-align: left;  }
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge,IE=9,chrome=1"><meta name="generator" content="MATLAB 2021b"><title>Troubleshooting the HEV with a Three-Way Catalyst example</title><style type="text/css">.rtcContent { padding: 30px; } .S0 { margin: 3px 10px 5px 4px; padding: 0px; line-height: 28.8px; min-height: 0px; white-space: pre-wrap; color: rgb(213, 80, 0); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 24px; font-weight: 400; text-align: left;  }
 .S1 { margin: 2px 10px 9px 4px; padding: 0px; line-height: 21px; min-height: 0px; white-space: pre-wrap; color: rgb(0, 0, 0); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 14px; font-weight: 400; text-align: left;  }
 .S2 { margin: 3px 10px 5px 4px; padding: 0px; line-height: 20px; min-height: 0px; white-space: pre-wrap; color: rgb(60, 60, 60); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 20px; font-weight: 700; text-align: left;  }
 .CodeBlock { background-color: #F7F7F7; margin: 10px 0 10px 0;}
@@ -16,12 +16,12 @@
 <!-- 
 ##### SOURCE BEGIN #####
 %% Troubleshooting the HEV with a Three-Way Catalyst example
-% Consider the <matlab:open('./example_split_hev.mlx') HEV with a Three-Way 
-% Catalyst>. The system and cost functions that are used there are designed with 
-% some extra-care so as to avoid all the common issues that may arise with DynaProg. 
-% These issues are tipically related to the way in which MATLAB handles n-dimensional 
-% arrays; for more information, see <matlab:open('./troubleshooting.mlx') Troubleshooting 
-% your model and Safe Mode>.
+% Consider the <./example_split_hev.mlx HEV with a Three-Way Catalyst>. The 
+% system and cost functions that are used there are designed with some extra-care 
+% so as to avoid all the common issues that may arise with DynaProg. These issues 
+% are tipically related to the way in which MATLAB handles n-dimensional arrays; 
+% for more information, see <./troubleshooting.mlx Troubleshooting your model 
+% and Safe Mode>.
 % 
 % We will start from a naively designed model function, analyze some issues 
 % that prevent their usage without using Safe Mode and discuss some solutions.
@@ -73,8 +73,7 @@ gbSpRatio(:) = gb.spdRatio(u{1});
 % is the control variable $u_1$; |gb.spdRatio| is the vector of speed ratios, 
 % with each element being the speed ratio associated to a certain gear number. 
 % This vector of speed ratios is created in the |hev_data| function and then passed 
-% to the model function as an <matlab:open('./use_additional_inputs.mlx') additional 
-% input>.
+% to the model function as an <./use_additional_inputs.mlx additional input>.
 % Querying interpolants
 % At line 30 of the external function, we use a |griddedInterpolant| object 
 % to evaluate |gbEff| as a function of two previously computed variables, |fdSpd| 
@@ -98,7 +97,7 @@ gbEff = gb.effMap(fdSpd.*ones(size(u{1})), fdTrq.*ones(size(u{1})), u{1});
 % efficiency as a function of its output shaft speed and torque and the engaged 
 % gear. This efficiency is evaluated by interpolating an efficiency map which 
 % is created in the |hev_data| function and then passed to the model function 
-% as an <matlab:open('./use_additional_inputs.mlx') additional input>.
+% as an <./use_additional_inputs.mlx additional input>.
 % 
 % Similar issues arise at lines 82 and 78 of the external function.
 % Logical indexing

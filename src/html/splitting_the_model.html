@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge,IE=9,chrome=1"><meta name="generator" content="MATLAB 2021a"><title>Splitting the model function</title><style type="text/css">.rtcContent { padding: 30px; } .S0 { margin: 3px 10px 5px 4px; padding: 0px; line-height: 28.8px; min-height: 0px; white-space: pre-wrap; color: rgb(213, 80, 0); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 24px; font-weight: 400; text-align: left;  }
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge,IE=9,chrome=1"><meta name="generator" content="MATLAB 2021b"><title>Splitting the model function</title><style type="text/css">.rtcContent { padding: 30px; } .S0 { margin: 3px 10px 5px 4px; padding: 0px; line-height: 28.8px; min-height: 0px; white-space: pre-wrap; color: rgb(213, 80, 0); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 24px; font-weight: 400; text-align: left;  }
 .S1 { margin: 2px 10px 9px 4px; padding: 0px; line-height: 21px; min-height: 0px; white-space: pre-wrap; color: rgb(0, 0, 0); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 14px; font-weight: 400; text-align: left;  }
 .S2 { margin: 10px 0px 20px; padding-left: 0px; font-family: Helvetica, Arial, sans-serif; font-size: 14px;  }
 .S3 { margin-left: 56px; line-height: 21px; min-height: 0px; text-align: left; white-space: pre-wrap;  }
@@ -41,10 +41,10 @@ function [intVar, unfeas] = sysfun_ext(u, w)
 % calculations. 
 % 
 % The reason why the external model is named so is because it can be run before 
-% the backward phase (see <matlab:open('./theory.mlx') theory>), on a different 
-% (much smaller in size) computational grid which does not involve the state variables. 
-% Performing part of the calculations on this reduced computational grid is the 
-% advantage of this approach.
+% the backward phase (see <./theory.mlx theory>), on a different (much smaller 
+% in size) computational grid which does not involve the state variables. Performing 
+% part of the calculations on this reduced computational grid is the advantage 
+% of this approach.
 % 
 % In practice, you will:
 %% 
@@ -58,10 +58,10 @@ function [intVar, unfeas] = sysfun_ext(u, w)
 end
 %% 
 % Your function should accept as the first input the control variables |u.| 
-% The second input can be used to pass an <matlab:open('./handle_exogenous_inputs.mlx') 
-% exogenous input> to the system function. If your system model does not make 
-% use of exogenous inputs, you can replace the second input in your function signature 
-% with a tilde (~).
+% The second input can be used to pass an <./handle_exogenous_inputs.mlx exogenous 
+% input> to the system function. If your system model does not make use of exogenous 
+% inputs, you can replace the second input in your function signature with a tilde 
+% (~).
 % 
 % Also, the function should return two outputs: the first output contains the 
 % intermediate variables. The intermediate variables are all relevant quantities 
@@ -76,9 +76,9 @@ end
 % in your function signature, but this should return an empty array: you should 
 % include anywhere in your function the line |unfeas = [];.|
 % 
-% You can specify any number of <matlab:open('./use_additional_inputs.mlx') 
-% additional inputs>, but you should not specify any <matlab:open('./use_additional_outputs.mlx') 
-% additional output> as those must be included in the internal function.
+% You can specify any number of <./use_additional_inputs.mlx additional inputs>, 
+% but you should not specify any <./use_additional_outputs.mlx additional output> 
+% as those must be included in the internal function.
 function [intVar, unfeas] = sysfun_ext(u, w, addInput1, .., addInputN)
    ...
 end
@@ -92,16 +92,14 @@ end
 % a tilde |~| if not needed.
 % 
 % As for the outputs, your internal function should follow the same rules as 
-% for regular <matlab:open('./set_up_a_basic_problem.mlx') system and cost functions>. 
-% The first three outputs are the updated state variables, the stage cost and 
-% unfeasibility. 
+% for regular <./set_up_a_basic_problem.mlx system and cost functions>. The first 
+% three outputs are the updated state variables, the stage cost and unfeasibility. 
 % 
-% You can also specify any number of <matlab:open('./use_additional_inputs.mlx') 
-% additional inputs> and <matlab:open('./use_additional_outputs.mlx') additional 
-% outputs>.
+% You can also specify any number of <./use_additional_inputs.mlx additional 
+% inputs> and <./use_additional_outputs.mlx additional outputs>.
 %% Set up and solve the optimization problem
 % Set up the state and and control variables grids, initial conditions and terminal 
-% constraints <matlab:open('./set_up_a_basic_problem.mlx') as usual>.
+% constraints <./set_up_a_basic_problem.mlx as usual>.
 % 
 % Pass a function handle to the external function as the sixth input argument 
 % and a function handle to the internal function as the seventh argument.
@@ -112,9 +110,9 @@ prob = DynaProg(StateGrid, StateInitial, StateFinal, ControlGrid, Nstages, ...
 prob = DynaProg(StateGrid, StateInitial, StateFinal, ControlGrid, Nstages, ...
  @sysfun_ext, @sysfun_int, 'ExogenousInput', w, 'StateName', SVnames);
 %% 
-% To pass <matlab:open('./use_additional_inputs.mlx') additional inputs> to 
-% your external and internal functions, parametrize them as you normally would, 
-% making sure you specify the correct inputs for the function handles. 
+% To pass <./use_additional_inputs.mlx additional inputs> to your external and 
+% internal functions, parametrize them as you normally would, making sure you 
+% specify the correct inputs for the function handles. 
 prob = DynaProg(StateGrid, StateInitial, StateFinal, ControlGrid, Nstages, ...
  @(u, w) sysfun_ext(u, w, addInput1, .., addInputN), @(x, u, w, m) sysfun_int(x, u, w, m, addInput1, .., addInputN), 'ExogenousInput', w);
 ##### SOURCE END #####
