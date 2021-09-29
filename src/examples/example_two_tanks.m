@@ -1,8 +1,8 @@
 %Two-Tank system example
 % Taken from: P. Elbert, S. Ebbesen, and L. Guzzella, “Implementation of
 % Dynamic Programming for n-Dimensional Optimal Control Problems With Final
-% State Constraints,�? IEEE Transactions on Control Systems Technology, vol.
-% 21, no. 3, pp. 924–931, May 2013, doi: 10.1109/TCST.2012.2190935.
+% State Constraints, IEEE Transactions on Control Systems Technology, vol.
+% 21, no. 3, pp. 924-931, May 2013, doi: 10.1109/TCST.2012.2190935.
 
 %% Set up the problem
 clear
