@@ -20,6 +20,13 @@ Alternitavely, you can simply clone the git repository. Then, add the `src` fold
 
 Doing this will not install the documentation in MATLAB's Help Browser. You can still visualize it with any web browser: browse to the `src/html` folder and open `index.html`.
 
+## Documentation
+There are three ways to access the documentation:
+- **From the MATLAB Help Browser.** Open the Help Browser. You can find _DynaProg Toolbox_ in the Contents menu (on the left), under _Supplemental Software_.
+This option is only available if you installed DynaProg from MATLAB's Add-on explorer or from the [File Exchange](https://www.mathworks.com/matlabcentral/fileexchange/84260-dynaprog).
+- **Online.** You can access the online documentation at [this link](https://fmiretti.github.io/DynaProg/).
+- **From the html files.** If you downloaded DynaProg as a .zip folder, you can find the docs in the _html_ folder. You should start by opening _index.html_ in your browser.
+
 ## Licensing
 DynaProg is available under the [MIT license](LICENSE.md).
 
