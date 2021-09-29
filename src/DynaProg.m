@@ -125,12 +125,12 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %           affect the optimization.
     %       VFInitialization: specify how final state values outside of 
     %           the final state constraints bounds should be penalized. Set
-    %           to 'ridge' to penalize them with a myInf term. Set to
+    %           to 'rift' to penalize them with a myInf term. Set to
     %           'linear' to penalize them with a term proportional to the 
     %           distance from the bounds.
-    %       VFFactors: if VFInitialization, VFFactors define the
-    %           proportionality factor for each sv. Specify as a numeric
-    %           array.
+    %       VFFactors: if VFInitialization is set to 'rift', VFFactors 
+    %           define the proportionality factor for each sv. Specify as a
+    %           numeric array.
     %   
     %   Author: Federico Miretti
     %
@@ -308,7 +308,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 if obj.UseLevelSet
                     obj.VFInitialization = 'linear';
                 else
-                    obj.VFInitialization = 'ridge';
+                    obj.VFInitialization = 'rift';
                 end
             end
             if isempty(obj.LevelSetInitialization)
@@ -344,7 +344,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                             end
                         end
                         VFN(isinf(VFN)) = 0;
-                    case 'ridge' % VFN is inf outside the target set
+                    case 'rift' % VFN is inf outside the target set
                         for n=1:length(obj.StateGrid)
                             if ~isempty(obj.StateFinal{n})
                                 VFN( StateFullGrid{n} > obj.StateFinal{n}(2) ...
