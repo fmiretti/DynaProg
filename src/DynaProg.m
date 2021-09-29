@@ -845,31 +845,21 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         end
         
     end
-    
+
     % Set/get methods
     methods
         function obj = set.SysNameInt(obj, name)
-            try
-                obj.SysNameInt = name;
-            catch ME
-                modelNameErr(ME)
-            end
-            obj = obj.checkAddOutputs(name);
+            obj.SysNameInt = name;
+            obj = obj.checkModelFun(name);
+
         end
         function obj = set.SysNameExt(obj, name)
-            try
-                obj.SysNameExt = name;
-            catch ME
-                modelNameErr(ME)
-            end
+            obj.SysNameExt = name;
+            obj = obj.checkModelFun(name);
         end
         function obj = set.SysName(obj, name)
-            try
-                obj.SysName = name;
-            catch ME
-                modelNameErr(ME)
-            end
-            obj = obj.checkAddOutputs(name);
+            obj.SysName = name;
+            obj = obj.checkModelFun(name);
         end
         function obj = set.StateGrid(obj, StateGrid)
             StateGridErr = false;
@@ -1008,10 +998,9 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         end
     end
     
-    methods (Access = private)
-        function obj = checkAddOutputs(obj, name)
-            % Determine the number of additional outputs declared in the
-            % user's system function signature
+    methods (Access=protected)
+        function obj = checkModelFun(obj, name)
+            % Extract the model function name
             info = functions(name);
             if strcmp(info.type, 'anonymous')
                 func_name = regexp(info.function, '\)\w*\(', 'match');
@@ -1019,13 +1008,31 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             else
                 func_name = name;
             end
+            % Check the model function name
+            try
+                nargout(func_name);
+            catch ME
+                switch ME.identifier
+                    case {'MATLAB:narginout:functionDoesnotExist', 'MATLAB:narginout:notValidMfile'}
+                        error(['Model function "' char(func_name) '" not found. Check the function name. Check the filename and path if the function is in a file.'])
+                    otherwise
+                        rethrow(ME)
+                end
+            end
+            % Check the number of inputs
+            if nargin(name) < 3
+                error('DynaProg:invalidModelInput', ['The function model must have at least three inputs (x, u and w).\n' ...
+                    'If you do not want to use exogenous inputs, suppress the third input (replace it with a tilde ~)'])
+            end
+            % Determine the number of additional outputs declared in the
+            % user's system function signature
             if nargout(func_name) < 3
                 error('DynaProg:invalidModelOutput', 'The function model has a wrong number of outputs.\n')
             end
             obj.NumAddOutputs = nargout(func_name) - 3;
         end
     end
-    
+
     methods (Static)
         
         function [A, linear_index] = min_compatibility(A, vecdim)
@@ -1056,13 +1063,5 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             
         end
         
-        function modelNameErr(ME)
-            switch ME.identifier
-                case 'MATLAB:narginout:functionDoesnotExist'
-                    error(['Model function ' char(name) ' not found. Check the filename and path.'])
-                otherwise
-                    rethrow(ME)
-            end
-        end
     end
 end
