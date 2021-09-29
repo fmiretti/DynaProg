@@ -155,6 +155,25 @@
 % |*'Time'*|
 % Specify time instead of stages. This property is only used in the plots produced 
 % with the plot method. It does not affect the optimization.
+% |*'VFInitialization'*|
+% Specify how final state values outside of the final state constraints bounds 
+% should be penalized. 
+%% 
+% * Set to |'rift'| to penalize state values outside of the bounds specified 
+% as |StateFinal| penalize with a cost equal to infinity. 
+% * Set to |'linear'| to penalize them with a cost term proportional to the 
+% distance from the bounds.
+%% 
+% This property defaults to |'linear'| if |'UseLevelSet'| is set to |true| and 
+% it is set to |'rift'| otherwise. 
+% 
+% Read the Terminal cost section in the <./theory.mlx Theory> guide for more 
+% information.
+% |*'VFFactors'*|
+% Specify the proportionality factors for the linear terminal cost. This property 
+% is only used if |VFInitialization| is set to |'linear'|. Specify as a numeric 
+% array with one factor for each state variable. Read the Terminal cost section 
+% in the <./theory.mlx Theory> guide for more information.
 %% Output Arguments
 % |prob|
 % Problem structure, containing all the information required to set up and run 

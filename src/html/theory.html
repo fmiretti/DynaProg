@@ -144,6 +144,43 @@ g_N(x_N) =   b \cdot \min\left( |x_N - x_{N,\mathrm{inf}}|, |x_N - x_{N,\mathrm{
 % in simulating the system's evolution. The trajectory of the state variables 
 % given the optimal control sequence is continuous and it is not tied to the discrete 
 % computational grid.
+%% *The terminal cost* 
+% DynaProg uses the terminal cost $g_N(x_N)$ to enforce terminal state constraints. 
+% Currently, two alternatives can be selected: _rift_ penalization and _linear_ 
+% penalization.
+% 
+% _Rift_ penalization means that the terminal cost has the form
+% 
+% $$\begin{cases}g_N(x_N) = 0 & \text{ if } \  x_{N,\mathrm{inf}} \leq x_N \leq 
+% x_{N,\mathrm{sup}} \, , \\g_N(x_N) = \infty & \text{otherwise},\end{cases}$$
+% 
+% where $ x_{N,\mathrm{inf}}$ and $x_{N,\mathrm{sup}}$ are the upper and lower 
+% bounds of the terminal state constraints.
+% 
+% _Linear_ penalization means that the terminal cost has the form
+% 
+% $$\begin{cases}g_N(x_N) = 0 & \text{ if } \  x_{N,\mathrm{inf}} \leq x_N \leq 
+% x_{N,\mathrm{sup}} \, , \\g_N(x_N) =   b \cdot \min\left( |x_N - x_{N,\mathrm{inf}}|, 
+% |x_N - x_{N,\mathrm{sup}}| \right) & \text{otherwise},\end{cases}$$
+% 
+% i.e. the terminal cost is proportional to the distance between the terminal 
+% state and the closest bound of the terminal state constraints, and $b$ is the 
+% proportionality factor.
+% 
+% If you have more than one state variable, the terminal cost is the sum of 
+% the terminal costs evaluated independently for each state variable.
+% 
+% The _linear_ penalization can fail to enforce terminal state constraints if 
+% the $b$ factors are not set properly. _Rift_ penalization on the other hand 
+% can cause the optimization to fail if the terminal state bounds are too tight 
+% or if the state grids are too coarse. This is caused by numerical issues related 
+% to the interpolations performed by the algorithm to obtain values for the cost-to-go 
+% function in the proximity of the unfeasible region.
+% 
+% You can specify what method to use by using the |VFInitialization| property 
+% and the proportionality factors $b$ by using the |VFFactors| property. Upper 
+% and lower bounds for the terminal state constraints are specified with the |StateFinal| 
+% property. Read the <./syntax.mlx Syntax> guide for more information.
 %% Notes on computational time
 % Dynamic Programming is an extremely powerful optimization tool in that it 
 % allow to solve problems even if the state dynamics and cost function are highly 
