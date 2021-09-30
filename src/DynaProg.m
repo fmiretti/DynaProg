@@ -552,12 +552,17 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 
                 % Warn the user if there are no feasible trajectories for
                 % the tail subproblem
-                if all(cost_opt >= obj.myInf)
+                if all(cost_opt >= obj.myInf) 
                     warning('DynaProg:failedCostToGoUpdate', 'The Cost-to-Go update has failed. Your problem might be overconstrained or the state variables grid might be too coarse.')
                     warning('off', 'DynaProg:failedCostToGoUpdate')
                 end
                 
             end
+            if obj.VF{1}(obj.StateInitial) >= obj.myInf
+                fprintf('\n')
+                error('DynaProg:failedCostToGoUpdate', 'The Cost-to-Go update has failed: no feasible solution was found. Your problem might be overconstrained or the state variables grid might be too coarse.\n')
+            end
+
             % Progress Bar
             fprintf('%s%2d %%\n', ones(1,4)*8, 100);
         end
@@ -574,7 +579,9 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 % Vector dimensions corresponding to CVs
                 vecdim_cv = (1:length(obj.N_CV)) + length(obj.N_SV);
             end
+
             % Progress Bar
+            progressbar = true;
             fprintf('DP forward progress:    ')
             % Preallocate profiles
             StateProfileMat = zeros(length(obj.StateGrid), obj.Nstages+1);
@@ -588,8 +595,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             
             for k = 1:obj.Nstages
                 % Progress Bar
-                fprintf('%s%2d %%', ones(1,4)*8, floor((k-1)/obj.Nstages*100));
-                
+                if progressbar
+                    fprintf('%s%2d %%', ones(1,4)*8, floor((k-1)/obj.Nstages*100));
+                end
+
                 % Expand current state to the full cv grid
                 if obj.SafeMode
                     for n = 1:length(state)
@@ -674,8 +683,15 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     intVars_opt = [];
                 end
                 % Advance the simulation
-                [state, stageCost, ~, addout] = model_wrapper(obj, state, cv_opt, exoInput, intVars_opt);
+                [state, stageCost, unfeas, addout] = model_wrapper(obj, state, cv_opt, exoInput, intVars_opt);
                 
+                % Check solution validity
+                if unfeas
+                    warning('DynaProg:failedForward', 'The solution violates your constraints. Your problem might be overconstrained or the state variables grid might be too coarse.\n')
+                    warning('off', 'DynaProg:failedForward')
+                    progressbar = false;
+                end
+
                 % Update the profiles
                 StateProfileMat(:,k+1) = [state{:}]';
                 ControlProfileMat(:,k) = [cv_opt{:}]';
@@ -686,10 +702,21 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 end
                 obj.CostProfile(k+1) = stageCost;
             end
+            % Check terminal state constraints
+            if any( cellfun( @(x,y) x < y(1) | x > y(2), state, obj.StateFinal ) )
+                fprintf('\n')
+                warning('DynaProg:failedTerminalState', ['The solution violates your terminal state constraints. Your problem might be overconstrained or the state variables grid might be too coarse.\n' ...
+                    'You can try refining the grids, widening the final state constraint bounds or using the Level Set option.\n'])
+                progressbar = false;
+            end
+
+            % Store state and control profiles
             obj.StateProfile = num2cell(StateProfileMat,2);
             obj.ControlProfile = num2cell(ControlProfileMat,2);
             % Progress Bar
-            fprintf('%s%2d %%\n', ones(1,4)*8, 100);
+            if progressbar
+                fprintf('%s%2d %%\n', ones(1,4)*8, 100);
+            end
         end
         
         function [states_next, stageCost, unFeas, addOutputs] = model_wrapper(obj, state, control, exoInput, IntermediateVars)
