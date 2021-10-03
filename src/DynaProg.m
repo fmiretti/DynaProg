@@ -839,7 +839,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 cumCost = cumsum(obj.CostProfile);
                 plot(cumCost, 'LineWidth', 1.5)
             else
-                cumCost = cumtrapz(obj.Time, obj.CostProfile);
+                cumCost = cumsum(obj.CostProfile);
                 plot(obj.Time, cumCost, 'LineWidth', 1.5)
             end
             title(obj.CostName)
