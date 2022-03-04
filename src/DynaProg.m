@@ -882,16 +882,16 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     methods
         function obj = set.SysNameInt(obj, name)
             obj.SysNameInt = name;
-            obj = obj.checkModelFun(name);
+            obj = obj.checkModelFun(name, 'int');
 
         end
         function obj = set.SysNameExt(obj, name)
             obj.SysNameExt = name;
-            obj = obj.checkModelFun(name);
+            obj = obj.checkModelFun(name, 'ext');
         end
         function obj = set.SysName(obj, name)
             obj.SysName = name;
-            obj = obj.checkModelFun(name);
+            obj = obj.checkModelFun(name, 'single');
         end
         function obj = set.StateGrid(obj, StateGrid)
             StateGridErr = false;
@@ -1031,7 +1031,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     end
     
     methods (Access=protected)
-        function obj = checkModelFun(obj, name)
+        function obj = checkModelFun(obj, name, mode)
             % Extract the model function name
             info = functions(name);
             if strcmp(info.type, 'anonymous')
@@ -1051,18 +1051,37 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                         rethrow(ME)
                 end
             end
+
             % Check the number of inputs
-            if nargin(name) < 3
-                error('DynaProg:invalidModelInput', ['The function model must have at least three inputs (x, u and w).\n' ...
-                    'If you do not want to use exogenous inputs, suppress the third input (replace it with a tilde ~)'])
+            switch mode
+                case 'single'
+                    if nargin(name) < 3
+                        error('DynaProg:invalidModelInput', ['The model function must have at least three inputs (x, u and w).\n' ...
+                            'If you do not want to use exogenous inputs, suppress the third input (replace it with a tilde ~)'])
+                    end
+                case 'ext'
+                    if nargin(name) < 2
+                        error('DynaProg:invalidModelInput', ['The external model function must have at least two inputs (u and w).\n' ...
+                            'If you do not want to use exogenous inputs, suppress the second input (replace it with a tilde ~)'])
+                    end
+                case 'int'
+                    if nargin(name) < 4
+                        error('DynaProg:invalidModelInput', ['The internal model function must have at least four inputs (x, u, w and intVar).\n' ...
+                            'If you do not want to use exogenous inputs, suppress the third input (replace it with a tilde ~)'])
+                    end
             end
+
             % Determine the number of additional outputs declared in the
             % user's system function signature
-            if nargout(func_name) < 3
-                error('DynaProg:invalidModelOutput', 'The function model has a wrong number of outputs.\n')
+            switch mode
+                case {'single', 'int'}
+                    if nargout(func_name) < 3
+                        error('DynaProg:invalidModelOutput', 'The function model has a wrong number of outputs.\n')
+                    end
+                    obj.NumAddOutputs = nargout(func_name) - 3;
             end
-            obj.NumAddOutputs = nargout(func_name) - 3;
         end
+
     end
 
     methods (Static)
