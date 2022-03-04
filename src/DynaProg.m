@@ -708,13 +708,17 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 obj.CostProfile(k+1) = stageCost;
             end
             % Check terminal state constraints
-            if any( cellfun( @(x,y) x < y(1) | x > y(2), state, obj.StateFinal ) )
-                fprintf('\n')
-                warning('DynaProg:failedTerminalState', ['The solution violates your terminal state constraints. Your problem might be overconstrained or the state variables grid might be too coarse.\n' ...
-                    'You can try refining the grids, widening the final state constraint bounds or using the Level Set option.\n'])
-                progressbar = false;
+            for n = 1:length(obj.StateFinal)
+                if ~isempty(obj.StateFinal{n})
+                    if state{n} < obj.StateFinal{n}(1) || state{n} > obj.StateFinal{n}(2)
+                        fprintf('\n')
+                        warning('DynaProg:failedTerminalState', ['The solution violates your terminal state constraints. Your problem might be overconstrained or the state variables grid might be too coarse.\n' ...
+                            'You can try refining the grids, widening the final state constraint bounds or using the Level Set option.\n'])
+                        progressbar = false;
+                        break
+                    end
+                end
             end
-
             % Store state and control profiles
             obj.StateProfile = num2cell(StateProfileMat,2);
             obj.ControlProfile = num2cell(ControlProfileMat,2);
