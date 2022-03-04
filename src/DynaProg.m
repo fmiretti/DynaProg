@@ -158,7 +158,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         VFInitialization char = [];
         LevelSetInitialization char = [];
         VFFactors double;
-        storeVF logical = false;
+        StoreValueFunction logical = false;
         % Results 
         StateProfile
         ControlProfile
@@ -286,7 +286,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             obj = backward(obj);
             obj = forward(obj);
             % Remove VF if its storage was not required
-            if ~obj.storeVF
+            if ~obj.StoreValueFunction
                 obj.VF = [];
             end
             % Reset warnings
