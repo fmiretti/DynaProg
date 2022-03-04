@@ -158,6 +158,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         VFInitialization char = [];
         LevelSetInitialization char = [];
         VFFactors double;
+        storeVF logical = false;
         % Results 
         StateProfile
         ControlProfile
@@ -175,7 +176,6 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         ControlFullGrid % Full CV grid
         ControlFullShiftedGrid
         myInf = 1e6;
-        VF   % Value Function
         LevelSet % Level-Set function
         IntermediateVars
         unFeasExt
@@ -185,6 +185,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         minfun = @(X, vecdim) min(X, [], vecdim, 'linear') % min function for 2019a+
     end
     properties (SetAccess = private)
+        VF   % Value Function
         Version = "1.5";
     end
     
@@ -284,6 +285,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             end
             obj = backward(obj);
             obj = forward(obj);
+            % Remove VF if its storage was not required
+            if ~obj.storeVF
+                obj.VF = [];
+            end
             % Reset warnings
             warning('on', 'DynaProg:failedCostToGoUpdate')
         end
