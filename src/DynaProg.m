@@ -158,7 +158,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         StoreControlMap logical = false;
         SafeMode = false;
         Time double = [];
-        VFInitialization char = [];
+        VFInitialization char {mustBeMember(VFInitialization, {'rift', 'linear', 'auto'})} = 'auto';
         LevelSetInitialization char = [];
         VFFactors double;
         % Results 
@@ -311,7 +311,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 error('DynaProg:wrongSizeStateInit', ['You must specify one '...
                     'initial condition for each of the state variables.']);
             end
-            if isempty(obj.VFInitialization)
+            if strcmp(obj.VFInitialization, 'auto')
                 if obj.UseLevelSet
                     obj.VFInitialization = 'linear';
                 else
