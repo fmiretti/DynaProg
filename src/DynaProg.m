@@ -114,9 +114,9 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %           problem.
     %       SafeMode: enables Safe Mode (see the documentation)
     %       StoreValueFunction: store the value function as a function of
-    %           state for each stage
+    %           state for each stage.
     %       StoreControlMap: store the optimal cv as a function of
-    %           state for each stage
+    %           state for each stage.
     %       StateName: specify state variables names in a string
     %           array. 
     %       ControlName: specify state variables names in a string
@@ -135,6 +135,8 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %           numeric array.
     %       myInf: if VFInitialization is set to 'rift', myInf defines the
     %           penalty cost for unfeasible terminal states.
+    %       enforceStateGrid: set a constraint so that the state variables
+    %           do not exceed the state grids. Defaults to true.
     %   
     %   Author: Federico Miretti
     %
@@ -161,6 +163,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         SafeMode = false;
         Time double = [];
         myInf double = 1e6;
+        enforceStateGrid logical = true;
         VFInitialization char {mustBeMember(VFInitialization, {'rift', 'linear', 'auto'})} = 'auto';
         LevelSetInitialization char = [];
         VFFactors double;
@@ -504,6 +507,12 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     end
                     stageCost = stageCost + zeros([obj.N_SV obj.N_CV]);
                     unFeas = unFeas | false([obj.N_SV obj.N_CV]);
+                end
+                % Enforce state grids
+                if obj.enforceStateGrid
+                    for n = 1:length(obj.N_SV)
+                        unFeas(states_next{n} > obj.StateGrid{n}(end) | states_next{n} < obj.StateGrid{n}(1)) = obj.myInf;
+                    end
                 end
                 
                 % Update Level-Set function
