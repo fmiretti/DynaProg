@@ -133,6 +133,8 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %       VFFactors: if VFInitialization is set to 'linear', VFFactors 
     %           define the proportionality factor for each sv. Specify as a
     %           numeric array.
+    %       myInf: if VFInitialization is set to 'rift', myInf defines the
+    %           penalty cost for unfeasible terminal states.
     %   
     %   Author: Federico Miretti
     %
@@ -158,6 +160,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         StoreControlMap logical = false;
         SafeMode = false;
         Time double = [];
+        myInf double = 1e6;
         VFInitialization char {mustBeMember(VFInitialization, {'rift', 'linear', 'auto'})} = 'auto';
         LevelSetInitialization char = [];
         VFFactors double;
@@ -177,7 +180,6 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         ControlCombGrid
         ControlFullGrid % Full CV grid
         ControlFullShiftedGrid
-        myInf = 1e6;
         LevelSet % Level-Set function
         IntermediateVars
         unFeasExt
