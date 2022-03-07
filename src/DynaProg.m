@@ -860,28 +860,16 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             if isempty(obj.Time)
                 cumCost = cumsum(obj.CostProfile);
                 plot(cumCost, 'LineWidth', 1.5)
+                xlabel('Stage number')
             else
                 cumCost = cumsum(obj.CostProfile);
                 plot(obj.Time, cumCost, 'LineWidth', 1.5)
+                xlabel('Time')
             end
             title(obj.CostName)
             axis tight
             
-            % Finalize
-            if compatibility_mode
-                if isempty(obj.Time)
-                    xlabel(ax(end), 'Stage number')
-                else
-                    xlabel(ax(end), 'Time')
-                end
-            else
-                if isempty(obj.Time)
-                    xlabel(t, 'Stage number')
-                else
-                    xlabel(t, 'Time')
-                end
-            end
-            
+            % Finalize            
             if compatibility_mode
                 arrayfun(@(x) set(x, 'FontSize', 10), ax)
                 t = gcf;
