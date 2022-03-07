@@ -10,16 +10,15 @@ time_final = 1;
 % State variables grid
 SVnames = {'Position', 'Speed'};
 x1_grid = 0:0.01:1;
-x2_grid = -0.5:0.01:1;
+x2_grid = -0.2:0.01:1.2;
 x_grid = {x1_grid, x2_grid};
 % Initial state 
 x1_init = pos_initial;
 x2_init = velocity_initial;
 x_init = {x1_init, x2_init};
 % Final state constraints
-x1_final = [pos_final-0.05 pos_final+0.05];
-x2_final = [velocity_final-0.05 velocity_final+0.05];
-
+x1_final = [pos_final-0.01 pos_final+0.01];
+x2_final = [velocity_final-0.02 velocity_final+0.02];
 x_final = {x1_final, x2_final};
 % Control variable grid
 CVnames = 'Thrust';
@@ -30,7 +29,6 @@ Nint = time_final/dt;
 
 % Create DynaProg object
 prob = DynaProg(x_grid, x_init, x_final, u_grid, Nint, @cart);
-prob.VFInitialization = 'linear';
 
 %% Solve and visualize results
 % Solve the problem
@@ -45,4 +43,4 @@ prob.ControlName = CVnames;
 prob.CostName = 'Energy';
 % Plot results
 figure
-plot(prob)
+plot(prob);
