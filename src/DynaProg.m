@@ -135,7 +135,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %           numeric array.
     %       myInf: if VFInitialization is set to 'rift', myInf defines the
     %           penalty cost for unfeasible terminal states.
-    %       enforceStateGrid: set a constraint so that the state variables
+    %       EnforceStateGrid: set a constraint so that the state variables
     %           do not exceed the state grids. Defaults to true.
     %   
     %   Author: Federico Miretti
@@ -163,7 +163,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         SafeMode = false;
         Time double = [];
         myInf double = 1e6;
-        enforceStateGrid logical = true;
+        EnforceStateGrid logical = true;
         VFInitialization char {mustBeMember(VFInitialization, {'rift', 'linear', 'auto'})} = 'auto';
         LevelSetInitialization char = [];
         VFFactors double;
@@ -509,7 +509,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     unFeas = unFeas | false([obj.N_SV obj.N_CV]);
                 end
                 % Enforce state grids
-                if obj.enforceStateGrid
+                if obj.EnforceStateGrid
                     for n = 1:length(obj.N_SV)
                         unFeas(states_next{n} > obj.StateGrid{n}(end) | states_next{n} < obj.StateGrid{n}(1)) = obj.myInf;
                     end
