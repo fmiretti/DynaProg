@@ -113,6 +113,8 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %           the same length as the number of stages of the optimization
     %           problem.
     %       SafeMode: enables Safe Mode (see the documentation)
+    %       StoreValueFunction: store the value function as a function of
+    %           state for each stage
     %       StoreControlMap: store the optimal cv as a function of
     %           state for each stage
     %       StateName: specify state variables names in a string
@@ -128,7 +130,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %           to 'rift' to penalize them with a myInf term. Set to
     %           'linear' to penalize them with a term proportional to the 
     %           distance from the bounds.
-    %       VFFactors: if VFInitialization is set to 'rift', VFFactors 
+    %       VFFactors: if VFInitialization is set to 'linear', VFFactors 
     %           define the proportionality factor for each sv. Specify as a
     %           numeric array.
     %   
@@ -152,13 +154,13 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         CostName string = [];
         ExogenousInput = [];
         UseLevelSet logical = false;
+        StoreValueFunction logical = false;
         StoreControlMap logical = false;
         SafeMode = false;
         Time double = [];
         VFInitialization char = [];
         LevelSetInitialization char = [];
         VFFactors double;
-        StoreValueFunction logical = false;
         % Results 
         StateProfile
         ControlProfile
