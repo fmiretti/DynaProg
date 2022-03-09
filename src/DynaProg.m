@@ -610,7 +610,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             obj.CostProfile(1) = 0;
             state_next = cell(1, length(obj.N_SV));
             exoInput = cell(1, size(obj.ExogenousInput, 2));
-            
+            % Initialize warnings
+            unfeasFwdWarn = false;
+            unfeasFwdWarnStages = [];
+
             for k = 1:obj.Nstages
                 % Progress Bar
                 if progressbar
@@ -705,9 +708,8 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 
                 % Check solution validity
                 if unfeas
-                    warning('DynaProg:failedForward', 'The solution violates your constraints. Your problem might be overconstrained or the state variables grid might be too coarse.\n')
-                    warning('off', 'DynaProg:failedForward')
-                    progressbar = false;
+                    unfeasFwdWarnStages(end+1) = k;
+                    unfeasFwdWarn = true;
                 end
 
                 % Update the profiles
@@ -731,6 +733,21 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                         break
                     end
                 end
+            end
+            % Print information about constraints violation in the fwd run
+            if unfeasFwdWarn
+                unfeasFwdWarnStages(end+1) = k;
+                unfeasFwdWarnStages = unfeasFwdWarnStages(1:min(10, numel(unfeasFwdWarnStages)));
+                str = "The solution violates your constraints at stages:\n";
+                for n = 1:numel(unfeasFwdWarnStages)
+                    str = str + "%d ";
+                end
+                if numel(unfeasFwdWarnStages) >= 10
+                    str = str + "and others more";
+                end
+                str = str + ".\nYour problem might be overconstrained or the state variables grid might be too coarse.";
+                unfeasFwdWarnStages = num2cell(unfeasFwdWarnStages);
+                warning('DynaProg:failedForward', str, unfeasFwdWarnStages{:})
             end
             % Store state and control profiles
             obj.StateProfile = num2cell(StateProfileMat,2);
