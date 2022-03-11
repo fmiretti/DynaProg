@@ -1,5 +1,5 @@
 classdef (CaseInsensitiveProperties=true) DynaProg
-    %DynaProg  Create DynaProg problem structure.
+    %DynaProg  Create a DynaProg problem structure.
     %
     %   prob = DynaProg(STATEGRID, STATEINITIAL, STATEFINAL,
     %   CONTROLGRID, NSTAGES, SYSNAME) creates the basic problem structure prob.
@@ -113,10 +113,25 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %           the same length as the number of stages of the optimization
     %           problem.
     %       SafeMode: enables Safe Mode (see the documentation)
-    %       StoreValueFunction: store the value function as a function of
-    %           state for each stage.
-    %       StoreControlMap: store the optimal cv as a function of
-    %           state for each stage.
+    %       myInf: if VFInitialization is set to 'rift', myInf defines the
+    %           penalty cost for unfeasible terminal states.
+    %       EnforceStateGrid: set a constraint so that the state variables
+    %           do not exceed the state grids. Defaults to true.
+    %     # Terminal Cost (Value Function initialization) settings
+    %       VFInitialization: specify how final state values outside of 
+    %           the final state constraints bounds should be penalized. Set
+    %           to 'rift' to penalize them with a myInf term. Set to
+    %           'linear' to penalize them with a term proportional to the 
+    %           distance from the bounds. Set to 'manual' to use a custom 
+    %           terminal cost and define it with TerminalCost. Note that in
+    %           this case DynaProg will not attempt to enforce STATEFINAL.
+    %       TerminalCost: define a custom terminal cost. Its size must be
+    %           composed by the lenghts of the state variable grids (i.e.
+    %           length(x1_grid) x length(x2_grid) x ... x length(xn_grid))
+    %       VFFactors: if VFInitialization is set to 'linear', VFFactors 
+    %           define the proportionality factor for each sv. Specify as a
+    %           numeric array.
+    %     # Plots settings
     %       StateName: specify state variables names in a string
     %           array. 
     %       ControlName: specify state variables names in a string
@@ -125,22 +140,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %       Time: specify time instead of stages. This property is only
     %           used in the plots produced with the plot method. It does not 
     %           affect the optimization.
-    %       VFInitialization: specify how final state values outside of 
-    %           the final state constraints bounds should be penalized. Set
-    %           to 'rift' to penalize them with a myInf term. Set to
-    %           'linear' to penalize them with a term proportional to the 
-    %           distance from the bounds.
-    %       VFFactors: if VFInitialization is set to 'linear', VFFactors 
-    %           define the proportionality factor for each sv. Specify as a
-    %           numeric array.
-    %       myInf: if VFInitialization is set to 'rift', myInf defines the
-    %           penalty cost for unfeasible terminal states.
-    %       EnforceStateGrid: set a constraint so that the state variables
-    %           do not exceed the state grids. Defaults to true.
-    %   
+    %
     %   Author: Federico Miretti
     %
-    % '<a href="matlab:web html/index.html">Open the full documentation</a>'
+    % <a href="matlab:web html/index.html">Open the full documentation</a>
     
     properties
         % Constructor: Main properties
@@ -164,9 +167,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         Time double = [];
         myInf double = 1e6;
         EnforceStateGrid logical = true;
-        VFInitialization char {mustBeMember(VFInitialization, {'rift', 'linear', 'auto'})} = 'auto';
+        VFInitialization char {mustBeMember(VFInitialization, {'rift', 'linear', 'auto', 'manual'})} = 'auto';
         LevelSetInitialization char = [];
         VFFactors double;
+        TerminalCost double = [];
         % Results 
         StateProfile
         ControlProfile
@@ -193,7 +197,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     end
     properties (SetAccess = private)
         VF   % Value Function
-        Version = "1.5";
+        Version = "1.6";
     end
     
     methods
@@ -316,13 +320,26 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 error('DynaProg:wrongSizeStateInit', ['You must specify one '...
                     'initial condition for each of the state variables.']);
             end
+            % Set the VF initialization method if unspecified
             if strcmp(obj.VFInitialization, 'auto')
-                if obj.UseLevelSet
-                    obj.VFInitialization = 'linear';
+                if isempty(obj.TerminalCost)
+                    if obj.UseLevelSet
+                        obj.VFInitialization = 'linear';
+                    else
+                        obj.VFInitialization = 'rift';
+                    end
                 else
-                    obj.VFInitialization = 'rift';
+                    obj.VFInitialization = 'manual';
                 end
             end
+             % Checks on the VF initialization method
+            if ~isempty(obj.TerminalCost) && ~strcmp(obj.VFInitialization, 'manual')
+                warning('DynaProg:ignoredTerminalCost', 'You specified a terminal cost with TerminalCost but VFInitialization is not set to ''manual''. Ignoring your terminal cost.' )
+            end
+            if isempty(obj.TerminalCost) && strcmp(obj.VFInitialization, 'manual')
+                warning('DynaProg:emptyTerminalCost', 'You set VFInitialization to ''manual'' but you did not specify a terminal cost. Set VFInitialization to a valid string or specify a terminal cost with TerminalCost.' )
+            end
+             % Set the Level Set initialization method if unspecified
             if isempty(obj.LevelSetInitialization)
                 obj.LevelSetInitialization = 'linear';
             end
@@ -362,6 +379,12 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                                 VFN( StateFullGrid{n} > obj.StateFinal{n}(2) ...
                                     | StateFullGrid{n} < obj.StateFinal{n}(1)) = obj.myInf;
                             end
+                        end
+                    case 'manual'
+                        VFN = obj.TerminalCost;
+                        % Check user-supplied terminal cost
+                        if ~isequal(size(VFN), obj.N_SV)
+                            error('DynaProg:wrongSizeTerminalCost', strjoin({'The terminal cost you provided has wrong size. It should be', sprintf('%dx', obj.N_SV), sprintf('\b\b (the lengths of the state grids).'), '\n'}))
                         end
                 end
             end
