@@ -156,9 +156,6 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         ControlGrid
         Nstages
         % Constructor: Name-Value pair arguments
-        StateName string = [];
-        ControlName string = [];
-        CostName string = [];
         ExogenousInput = [];
         UseLevelSet logical = false;
         StoreValueFunction logical = false;
@@ -169,7 +166,6 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         EnforceStateGrid logical = true;
         VFInitialization char {mustBeMember(VFInitialization, {'rift', 'linear', 'auto', 'manual'})} = 'auto';
         LevelSetInitialization char = [];
-        VFFactors double;
         TerminalCost double = [];
         % Results 
         StateProfile
@@ -180,8 +176,6 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     end
     properties (Access = protected)
         % Computational grids, value and level-set function
-        N_SV double % total size of the state variables grids
-        N_CV double % total size of the control variables grids
         StateCombGrid
         StateGridVect % State grids as N_SV_n-by-1 vectors, needed to create VF interpolants
         ControlCombGrid
@@ -190,10 +184,28 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         LevelSet % Level-Set function
         IntermediateVars
         unFeasExt
-        UseExoInput logical = false
         NumAddOutputs double = 0 % Number of additional outputs in the system function
         UseSplitModel logical
-        minfun = @(X, vecdim) min(X, [], vecdim, 'linear') % min function for 2019a+
+        minfun = @(X, vecdim) min(X, [], vecdim, 'linear') % min function. The default works for 2019a+.
+        % Protected dependent properties
+        %   These are defined to avoid property initialization order
+        %   dependency along with their dependent counterparts
+        VFFactorsProt double = [];
+        StateNameProt string = [];
+        ControlNameProt string = [];
+        CostNameProt string = [];
+    end
+    properties (Dependent)
+        N_SV double % total size of the state variables grids
+        N_CV double % total size of the control variables grids
+        UseExoInput logical
+        % Protected dependent properties
+        %   These are defined to avoid property initialization order
+        %   dependency along with their protected counterparts
+        VFFactors double;
+        StateName
+        ControlName
+        CostName
     end
     properties (SetAccess = private)
         VF   % Value Function
@@ -269,18 +281,6 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             % Assign the NVP properties
             for n = 1:length(nvpNames)
                 obj.(nvpNames{n}) = nvpValues{n};
-            end
-            % Set others
-            obj.N_SV = cellfun(@(x) length(x), obj.StateGrid);
-            obj.N_CV = cellfun(@(x) length(x), obj.ControlGrid);
-            if isempty(obj.StateName)
-                obj.StateName = [];
-            end
-            if isempty(obj.ControlName)
-                obj.ControlName = [];
-            end
-            if isempty(obj.VFFactors)
-                obj.VFFactors = [];
             end
         end
         
@@ -1014,40 +1014,16 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 error('DynaProg:invalidControlGrid', 'ControlGrid must be a vector (if the there is only one control variable) or a cell array of numeric vectors (if there are more).');
             end
         end
-        function obj = set.StateName(obj, StateName)
-            if isempty(StateName)
-                obj.StateName = string(arrayfun(@(x) ['x_' num2str(x)], 1:length(obj.StateGrid), 'UniformOutput', false));
-            else
-                obj.StateName = StateName;
-            end
-            if length(obj.StateName) ~= length(obj.StateGrid)
-                error('DynaProg:wrongSizeStateName', 'StateName must be a string array (or cell array of character vectors) specifying one string for each of the state variables.')
-            end
+        function N_SV = get.N_SV(obj)
+            N_SV = cellfun(@(x) length(x), obj.StateGrid);
         end
-        function obj = set.ControlName(obj, ControlName)
-            if isempty(ControlName)
-                obj.ControlName = string(arrayfun(@(x) ['u_' num2str(x)], 1:length(obj.ControlGrid), 'UniformOutput', false));
-            else
-                obj.ControlName = ControlName;
-            end
-            if length(obj.ControlName) ~= length(obj.ControlGrid)
-                error('DynaProg:wrongSizeControlNames', 'ControlNames must be a string array (or cell array of character vectors) specifying one string for each of the control variables.')
-            end
-        end
-        function obj = set.CostName(obj, CostName)
-            if isempty(CostName)
-                obj.CostName = 'Cumulative cost';
-            else
-                obj.CostName = CostName;
-            end
+        function N_CV = get.N_CV(obj)
+            N_CV = cellfun(@(x) length(x), obj.ControlGrid);
         end
         function obj = set.ExogenousInput(obj, ExogenousInput)
-            if isempty(ExogenousInput)
-                obj.UseExoInput = false;
-            elseif ~iscell(ExogenousInput)
+            if ~iscell(ExogenousInput)
                 if isvector(ExogenousInput)
                     obj.ExogenousInput = ExogenousInput(:);
-                    obj.UseExoInput = true;
                 else
                     error('DynaProg:exogenousInputNotVectors', 'ExogenousInput must be a cell array of vectors, one for each exogenous input variable.')
                 end
@@ -1057,20 +1033,79 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                         error('DynaProg:exogenousInputNotVectors', 'ExogenousInput must be a cell array of vectors, one for each exogenous input variable.')
                     end
                     obj.ExogenousInput(:,n) = ExogenousInput{n}(:);
-                    obj.UseExoInput = true;
                 end
             end
         end
-        function obj = set.VFFactors(obj, VFFactors)
-            if isempty(VFFactors)
-                for n = 1:length(obj.StateGrid)
-                    obj.VFFactors(n) = abs(obj.StateGrid{n}(end) - obj.StateGrid{n}(1)) * 10;
+        function useExoInput = get.UseExoInput(obj)
+            if isempty(obj.ExogenousInput)
+                useExoInput = false;
+            else
+                useExoInput = true;
+            end
+        end
+        function VFFactors = get.VFFactors(obj)
+            % If unspecified, define based on the state grid bounds
+            if isempty(obj.VFFactorsProt)
+                for n = 1:length(obj.N_SV)
+                    VFFactors(n) = abs(obj.StateGrid{n}(end) - obj.StateGrid{n}(1)) * 10;
                 end
             else
-                obj.VFFactors = VFFactors;
+                VFFactors = obj.VFFactorsProt;
             end
-            if length(obj.VFFactors) ~= length(obj.StateGrid)
+        end
+        function obj = set.VFFactors(obj, VFFactors)
+            % Validate size
+            if length(VFFactors) ~= length(obj.N_SV)
                 error('DynaProg:wrongSizeVFFactors', 'VFFactors must be a numeric array specifying one value for each of the state variables.')
+            end
+            obj.VFFactorsProt = VFFactors;
+        end
+        function stateName = get.StateName(obj)
+            % If unspecified (left empty), set StateName to ['x_1', 'x_2', ...]
+            if isempty(obj.StateNameProt)
+                stateName = string(arrayfun(@(x) ['x_' num2str(x)], 1:length(obj.StateGrid), 'UniformOutput', false));
+            else
+                stateName = obj.StateNameProt;
+            end
+        end
+        function obj = set.StateName(obj, stateName)
+            % Check the size of StateName
+            if length(stateName) ~= length(obj.StateGrid)
+                error('DynaProg:wrongSizeStateName', 'StateName must be a string array (or cell array of character vectors) specifying one string for each of the state variables.')
+            end
+            obj.StateNameProt = stateName;
+        end
+        function controlName = get.ControlName(obj)
+            % If unspecified (left empty), set ControlName to ['u_1', 'u_2', ...]
+            if isempty(obj.ControlNameProt)
+                controlName = string(arrayfun(@(x) ['u_' num2str(x)], 1:length(obj.ControlGrid), 'UniformOutput', false));
+            else
+                controlName = obj.ControlNameProt;
+            end
+        end
+        function obj = set.ControlName(obj, controlName)
+            % Check the size of ControlName
+            if length(controlName) ~= length(obj.ControlGrid)
+                error('DynaProg:wrongSizeControlNames', 'ControlNames must be a string array (or cell array of character vectors) specifying one string for each of the control variables.')
+            end
+            obj.ControlNameProt = controlName;
+        end
+        function costName = get.CostName(obj)
+            % If unspecified (left empty), set ControlName to 'Cumulative
+            % cost'
+            if isempty(obj.CostNameProt)
+                costName = 'Cumulative cost';
+            else
+                costName = obj.CostNameProt;
+            end
+        end
+        function obj = set.CostName(obj, costName)
+            % If unspecified (left empty), set ControlName to 'Cumulative
+            % cost'
+            if isempty(costName)
+                obj.CostNameProt = 'Cumulative cost';
+            else
+                obj.CostNameProt = costName;
             end
         end
     end
