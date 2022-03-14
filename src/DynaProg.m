@@ -820,7 +820,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         function obj = check_StateFinal(obj)
             for n = 1:length(obj.StateGrid)
                 if ~isempty(obj.StateFinal{n})
-                    if obj.UseLevelSet & (obj.StateFinal{n}(1) == obj.StateFinal{n}(2))
+                    if obj.UseLevelSet && (obj.StateFinal{n}(1) == obj.StateFinal{n}(2))
                         warning('DynaProg:levelSetFail', 'When the level-set method is enabled, you should not specify the target state as a single point. Make sure you specify distinct lower and upper final state bounds.')
                     else
                         count = sum(obj.StateGrid{n} >= obj.StateFinal{n}(1) & obj.StateGrid{n} <= obj.StateFinal{n}(2));
@@ -1046,8 +1046,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         function VFFactors = get.VFFactors(obj)
             % If unspecified, define based on the state grid bounds
             if isempty(obj.VFFactorsProt)
+                % Use a smaller penalty if Level Set is used
+                penaltyFactor = ( 1 * obj.UseLevelSet + 10 * ~obj.UseLevelSet );
                 for n = 1:length(obj.N_SV)
-                    VFFactors(n) = abs(obj.StateGrid{n}(end) - obj.StateGrid{n}(1)) * 10;
+                    VFFactors(n) = abs(obj.StateGrid{n}(end) - obj.StateGrid{n}(1)) * penaltyFactor;
                 end
             else
                 VFFactors = obj.VFFactorsProt;
