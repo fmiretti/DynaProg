@@ -31,6 +31,8 @@
             </tocitem>
             <tocitem target="example_split_hev.html">Hybrid electric vehicle example: split model
             </tocitem>
+            <tocitem target="example_two_tanks.html">Two tanks example
+            </tocitem>
             <tocitem target="example_troubleshooting.html">Hybrid electric vehicle example: troubleshooting the model
             </tocitem>
         </tocitem>
