@@ -180,7 +180,6 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         StateGridVect % State grids as N_SV_n-by-1 vectors, needed to create VF interpolants
         ControlCombGrid
         ControlFullGrid % Full CV grid
-        ControlFullShiftedGrid
         LevelSet % Level-Set function
         IntermediateVars
         unFeasExt
@@ -358,7 +357,6 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             for n = 1:length(obj.N_CV)
                 obj.ControlGrid{n} = obj.ControlGrid{n}(:);
                 obj.ControlGrid{n} = shiftdim(obj.ControlGrid{n}, -length(obj.StateGrid) - (n-1));
-                obj.ControlFullShiftedGrid{n} = shiftdim(obj.ControlFullGrid{n}, -length(obj.StateGrid));
             end
             % Initialize terminal VF
             StateFullGrid = cell(1, length(obj.StateGrid));
