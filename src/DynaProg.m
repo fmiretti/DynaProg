@@ -1073,6 +1073,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             end
         end
         function obj = set.StateName(obj, stateName)
+            % If it is a char array, convert it into a cell array
+            if ischar(stateName)
+                stateName = {stateName};
+            end
             % Check the size of StateName
             if length(stateName) ~= length(obj.StateGrid)
                 error('DynaProg:wrongSizeStateName', 'StateName must be a string array (or cell array of character vectors) specifying one string for each of the state variables.')
@@ -1088,6 +1092,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             end
         end
         function obj = set.ControlName(obj, controlName)
+            % If it is a char array, convert it into a cell array
+            if ischar(controlName)
+                controlName = {controlName};
+            end
             % Check the size of ControlName
             if length(controlName) ~= length(obj.ControlGrid)
                 error('DynaProg:wrongSizeControlNames', 'ControlNames must be a string array (or cell array of character vectors) specifying one string for each of the control variables.')
