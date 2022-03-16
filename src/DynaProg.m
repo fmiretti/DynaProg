@@ -288,12 +288,14 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             if verLessThan('matlab','9.6') % aka 2019a
                 obj.minfun =  @(X, vecdim) obj.min_compatibility(X, vecdim);
             end
-            % Run the optimization algorithm
+            % Create computational grids
             obj = create_grids(obj);
             if obj.UseSplitModel
                 obj = create_intVars(obj);
             end
+            % Generate value functions
             obj = backward(obj);
+            % Generate optimal trajectories
             obj = forward(obj);
             % Remove VF if its storage was not required
             if ~obj.StoreValueFunction
@@ -346,11 +348,13 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             % State grids as N_SV_n-by-1 vectors, needed to create VF interpolants
             obj.StateGridVect = cellfun(@(x) x(:), obj.StateGrid, 'UniformOutput', false);
             
-            % Combined SV grids
-            obj.StateCombGrid = cell(1, length(obj.N_SV));
-            obj.ControlCombGrid = cell(1, length(obj.N_CV));
-            [obj.StateCombGrid{:}, obj.ControlCombGrid{:}] = ndgrid(obj.StateGrid{:}, obj.ControlGrid{:});
-                
+            % Combined SV and CV grids
+            if obj.SafeMode
+                obj.StateCombGrid = cell(1, length(obj.N_SV));
+                obj.ControlCombGrid = cell(1, length(obj.N_CV));
+                [obj.StateCombGrid{:}, obj.ControlCombGrid{:}] = ndgrid(obj.StateGrid{:}, obj.ControlGrid{:});
+            end
+
             % Full CV grid
             obj.ControlFullGrid = cell(1, length(obj.ControlGrid));
             [obj.ControlFullGrid{:}] = ndgrid(obj.ControlGrid{:});
@@ -716,7 +720,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     index_opt(isempty_UR) = MinLevelSetCV;
                 end
                 cv_opt =  cellfun(@(x) x(index_opt), obj.ControlFullGrid, 'UniformOutput', false);
-                
+
                 % Extract the intermediate variables for the optimal cv
                 if obj.UseSplitModel
                     intVars = cellfun(@(x) x .* ones(size(cost)), intVars, 'UniformOutput', false);
