@@ -540,67 +540,20 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                     end
                 end
                 
-                % Update Level-Set function
-                if obj.UseLevelSet
-                    % Read L(k+1)
-                    LevelSet_next =  obj.LevelSet{k+1}(states_next{:});
-                    % set LevelSet_next to inf for the unfeasible CVs
-                    LevelSet_next(unFeas) = obj.myInf;
-                    % Update level-set function and find L-minimizing CVs
-                    [LevelSetValue, MinLevelSetCV] = obj.minfun(LevelSet_next, vecdim_cv);
-                    % Check if the set of reachable CVs U^R(x_k) (CVs that
-                    % lead to a reachable state) is empty. Note: U^R(x_k) is
-                    % a subset of U(x_k) (set of feasible CVs).
-                    isempty_UR = LevelSetValue>0;
-                    % Level set failure
-                    if all(LevelSetValue>0)
-                        %                         keyboard;
-                    end
-                    % Construct L approximating function for the current timestep
-                    obj.LevelSet{k} = griddedInterpolant(obj.StateGridVect, ...
-                        LevelSetValue, 'linear');
-                end
-                
-                % Read VF(k+1)
-                VF_next =  obj.VF{k+1}(states_next{:});
-                cost = stageCost + VF_next;
-                % Set cost-to-go to inf for the unfeasible/unreachable CVs
-                cost(unFeas) = obj.myInf;
-                % Find optimal control as a function of the current state
-                [cost_opt, cv_opt] = obj.minfun(cost, vecdim_cv);
-                
-                if obj.UseLevelSet
-                    % For those state grid points where no feasible cv was found
-                    % (isempty_UR), calculate the VF based on the cv that minimizes
-                    % the level-set function.
-                    cost_MinLevelSetCV = cost(MinLevelSetCV);
-                    cost_opt(isempty_UR) = cost_MinLevelSetCV(isempty_UR);
-                    if obj.StoreControlMap
-                        cv_opt(isempty_UR) = MinLevelSetCV(isempty_UR);
-                    end
-                end
-                
-                % Construct VF approximating function for the current timestep
-                obj.VF{k} = griddedInterpolant(obj.StateGridVect, cost_opt, ...
-                    'linear');
+                % Update the value function
+                [obj, cv_opt] = updateVF(obj, k, states_next, stageCost, unFeas, vecdim_cv);
+
                 
                 % Store cv map
                 if obj.StoreControlMap
                     for n = 1:length(obj.N_CV)
-                        cv_opt_sub = cell(1, ndims(cost));
-                        [cv_opt_sub{:}] = ind2sub(size(cost), cv_opt);
+                        cv_opt_sub = cell(1, length(obj.N_SV) + length(obj.N_CV));
+                        [cv_opt_sub{:}] = ind2sub([obj.N_SV, obj.N_CV], cv_opt);
                         obj.ControlMap{n,k} = squeeze(obj.ControlGrid{n}(cv_opt_sub{n+length(obj.N_SV)}));
                     end
                 end
-                
-                % Warn the user if there are no feasible trajectories for
-                % the tail subproblem
-                if all(cost_opt >= obj.myInf) 
-                    warning('DynaProg:failedCostToGoUpdate', 'The Cost-to-Go update has failed. Your problem might be overconstrained or the state variables grid might be too coarse.')
-                    warning('off', 'DynaProg:failedCostToGoUpdate')
-                end
-                
             end
+
             if obj.VF{1}(obj.StateInitial) >= obj.myInf
                 fprintf('\n')
                 error('DynaProg:failedCostToGoUpdate', 'The Cost-to-Go update has failed: no feasible solution was found. Your problem might be overconstrained or the state variables grid might be too coarse.\n')
@@ -610,6 +563,60 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             fprintf('%s%2d %%\n', ones(1,4)*8, 100);
         end
         
+        function [obj, cv_opt_idx, cost_opt] = updateVF(obj, k, states_next, stageCost, unFeas, vecdim_cv)
+            % Update Level-Set function
+            if obj.UseLevelSet
+                % Read L(k+1)
+                LevelSet_next = obj.LevelSet{k+1}(states_next{:});
+                % set LevelSet_next to inf for the unfeasible CVs
+                LevelSet_next(unFeas) = obj.myInf;
+                % Update level-set function and find L-minimizing CVs
+                [LevelSetValue, MinLevelSetCV] = obj.minfun(LevelSet_next, vecdim_cv);
+                % Check if the set of reachable CVs U^R(x_k) (CVs that
+                % lead to a reachable state) is empty. Note: U^R(x_k) is
+                % a subset of U(x_k) (set of feasible CVs).
+                isempty_UR = LevelSetValue>0;
+                % Level set failure
+                if all(LevelSetValue>0)
+                    fprintf('\n')
+                    error('DynaProg:failedLevelSetUpdate', 'The level set function update has failed: no feasible solution was found. Your problem might be overconstrained or the state variables grid might be too coarse.\n')
+                end
+                % Construct L approximating function for the current timestep
+                obj.LevelSet{k} = griddedInterpolant(obj.StateGridVect, ...
+                    LevelSetValue, 'linear');
+            end
+
+            % Read VF(k+1)
+            VF_next =  obj.VF{k+1}(states_next{:});
+            cost = stageCost + VF_next;
+            % Set cost-to-go to inf for the unfeasible/unreachable CVs
+            cost(unFeas) = obj.myInf;
+            % Find optimal control as a function of the current state
+            [cost_opt, cv_opt_idx] = obj.minfun(cost, vecdim_cv);
+
+            if obj.UseLevelSet
+                % For those state grid points where no feasible cv was found
+                % (isempty_UR), calculate the VF based on the cv that minimizes
+                % the level-set function.
+                cost_MinLevelSetCV = cost(MinLevelSetCV);
+                cost_opt(isempty_UR) = cost_MinLevelSetCV(isempty_UR);
+                if obj.StoreControlMap
+                    cv_opt_idx(isempty_UR) = MinLevelSetCV(isempty_UR);
+                end
+            end
+
+            % Construct VF approximating function for the current timestep
+            obj.VF{k} = griddedInterpolant(obj.StateGridVect, cost_opt, ...
+                'linear');
+
+            % Warn the user if there are no feasible trajectories for
+            % the tail subproblem
+            if all(cost_opt >= obj.myInf)
+                warning('DynaProg:failedCostToGoUpdate', 'The Cost-to-Go update has failed. Your problem might be overconstrained or the state variables grid might be too coarse.')
+                warning('off', 'DynaProg:failedCostToGoUpdate')
+            end
+        end
+
         function obj = forward(obj)
             % Run the optimization algorithm forward phase
             
