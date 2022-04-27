@@ -164,9 +164,9 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         Time double = [];
         myInf double = 1e6;
         EnforceStateGrid logical = true;
-        VFInitialization char {mustBeMember(VFInitialization, {'rift', 'linear', 'auto', 'manual'})} = 'auto';
+        VFInitialization char {mustBeMember(VFInitialization, {'rift', 'linear', 'auto'})} = 'auto';
         LevelSetInitialization char = [];
-        TerminalCost double = [];
+        TerminalCost function_handle = @(x) zeros(cellfun(@length, x));
         % Results 
         StateProfile
         ControlProfile
@@ -234,9 +234,9 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             % - sysname, name-value pairs
             % - extsysname, intsysname, name-value pairs
             if isempty(varargin)
-                    error('DynaProg:wrongNumInputs', ['You must specify at '...
-                        'least six positional arguments. Check the '...
-                        'syntax guide.'])
+                error('DynaProg:wrongNumInputs', ['You must specify at '...
+                    'least six positional arguments. Check the '...
+                    'syntax guide.'])
             else
                 if isa(varargin{1}, 'function_handle') && (length(varargin) == 1 || ~isa(varargin{2}, 'function_handle') )
                     obj.UseSplitModel = false;

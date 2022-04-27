@@ -16,22 +16,11 @@ if length(obj.StateInitial) ~= length(obj.StateGrid)
 end
 % Set the VF initialization method if unspecified
 if strcmp(obj.VFInitialization, 'auto')
-    if isempty(obj.TerminalCost)
-        if obj.UseLevelSet
-            obj.VFInitialization = 'linear';
-        else
-            obj.VFInitialization = 'rift';
-        end
+    if obj.UseLevelSet
+        obj.VFInitialization = 'linear';
     else
-        obj.VFInitialization = 'manual';
+        obj.VFInitialization = 'rift';
     end
-end
-% Checks on the VF initialization method
-if ~isempty(obj.TerminalCost) && ~strcmp(obj.VFInitialization, 'manual')
-    warning('DynaProg:ignoredTerminalCost', 'You specified a terminal cost with TerminalCost but VFInitialization is not set to ''manual''. Ignoring your terminal cost.' )
-end
-if isempty(obj.TerminalCost) && strcmp(obj.VFInitialization, 'manual')
-    warning('DynaProg:emptyTerminalCost', 'You set VFInitialization to ''manual'' but you did not specify a terminal cost. Set VFInitialization to a valid string or specify a terminal cost with TerminalCost.' )
 end
 % Set the Level Set initialization method if unspecified
 if isempty(obj.LevelSetInitialization)
@@ -55,10 +44,19 @@ for n = 1:length(obj.N_CV)
     obj.ControlGrid{n} = obj.ControlGrid{n}(:);
     obj.ControlGrid{n} = shiftdim(obj.ControlGrid{n}, -length(obj.StateGrid) - (n-1));
 end
-% Initialize terminal VF
-StateFullGrid = cell(1, length(obj.StateGrid));
-[StateFullGrid{:}] = ndgrid(obj.StateGrid{:});
-VFN = zeros(size(StateFullGrid{1}));
+
+% Initialize terminal VF with the terminal cost
+VFN = obj.TerminalCost(obj.StateGrid);
+% Check user-supplied terminal cost
+if ~isequal(size(VFN), obj.N_SV)
+    error('DynaProg:wrongSizeTerminalCost', strjoin({'The terminal cost function you provided returns a cost with wrong size. It should be', sprintf('%dx', obj.N_SV), sprintf('\b\b (the lengths of the state grids).'), '\n'}))
+end
+
+% Combined SV grid
+StateCombGrid = cell(1, length(obj.StateGrid));
+[StateCombGrid{:}] = ndgrid(obj.StateGrid{:});
+
+% Add penalty term to the terminal VF
 if ~isempty(obj.StateFinal)
     switch obj.VFInitialization
         case 'linear' %VFN is proportional to the distance from the target set
@@ -74,12 +72,6 @@ if ~isempty(obj.StateFinal)
                     VFN( StateCombGrid{n} > obj.StateFinal{n}(2) ...
                         | StateCombGrid{n} < obj.StateFinal{n}(1)) = obj.myInf;
                 end
-            end
-        case 'manual'
-            VFN = obj.TerminalCost;
-            % Check user-supplied terminal cost
-            if ~isequal(size(VFN), obj.N_SV)
-                error('DynaProg:wrongSizeTerminalCost', strjoin({'The terminal cost you provided has wrong size. It should be', sprintf('%dx', obj.N_SV), sprintf('\b\b (the lengths of the state grids).'), '\n'}))
             end
     end
 end
