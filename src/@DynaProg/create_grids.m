@@ -15,11 +15,11 @@ if length(obj.StateInitial) ~= length(obj.StateGrid)
         'initial condition for each of the state variables.']);
 end
 % Set the VF initialization method if unspecified
-if strcmp(obj.VFInitialization, 'auto')
+if strcmp(obj.VFPenalty, 'auto')
     if obj.UseLevelSet
-        obj.VFInitialization = 'linear';
+        obj.VFPenalty = 'linear';
     else
-        obj.VFInitialization = 'rift';
+        obj.VFPenalty = 'rift';
     end
 end
 % Set the Level Set initialization method if unspecified
@@ -58,11 +58,11 @@ StateCombGrid = cell(1, length(obj.StateGrid));
 
 % Add penalty term to the terminal VF
 if ~isempty(obj.StateFinal)
-    switch obj.VFInitialization
+    switch obj.VFPenalty
         case 'linear' %VFN is proportional to the distance from the target set
             for n = 1:length(obj.StateGrid)
                 if ~isempty(obj.StateFinal{n})
-                    VFN = VFN + obj.VFFactors(n) .* ( max(obj.StateFinal{n}(1)-StateCombGrid{n}, 0) + max(StateCombGrid{n}-obj.StateFinal{n}(2), 0) );
+                    VFN = VFN + obj.VFPenFactors(n) .* ( max(obj.StateFinal{n}(1)-StateCombGrid{n}, 0) + max(StateCombGrid{n}-obj.StateFinal{n}(2), 0) );
                 end
             end
             VFN(isinf(VFN)) = 0;

@@ -16,12 +16,12 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %      where:
     %       X is a cell array, where each cell contains the value for a
     %       state variable.
-    %       U is a cell array, where each cell contains the value for a 
-    %       control variable. 
-    %       W (optional) is a cell array, where each cell contains the 
+    %       U is a cell array, where each cell contains the value for a
+    %       control variable.
+    %       W (optional) is a cell array, where each cell contains the
     %       value for an exogenous input variable. If not needed, replace
     %       with a tilde (~) in the function signature.
-    %       X_NEXT is a cell array, where each cell contains the value for 
+    %       X_NEXT is a cell array, where each cell contains the value for
     %       the updated state variable.
     %       STAGE_COST is a numeric variable, containing the stage cost.
     %       UNFEAS is either an empty array a boolean variable, set to true
@@ -36,49 +36,49 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %   defines the initial value for a state variable.
     %
     %   STATEFINAL is a cell array of two-element vectors, where each
-    %   vector defines lower and upper constraints for the final value for  
-    %   each state variable. Each vector must contain the lower and upper  
+    %   vector defines lower and upper constraints for the final value for
+    %   each state variable. Each vector must contain the lower and upper
     %   bound, in this order.
     %
     %   CONTROLGRID is a cell array of numeric vectors, where each vector
-    %   defines the discretized grid for a control variable.    
+    %   defines the discretized grid for a control variable.
     %
     %   NSTAGES is the number of stages of the optimization problem.
     %
     %   prob = DynaProg(STATEGRID, STATEINITIAL, [],
-    %   CONTROLGRID, NSTAGES, SYSNAME) creates the basic problem structure 
+    %   CONTROLGRID, NSTAGES, SYSNAME) creates the basic problem structure
     %   prob, with no contraints on the final state.
     %
     %   prob = DynaProg(STATEGRID, STATEINITIAL, STATEFINAL,
     %   CONTROLGRID, NSTAGES, EXTSYSNAME, INTSYSNAME) creates the basic
-    %   problem structure prob, using the split system approach.    
+    %   problem structure prob, using the split system approach.
     %
     %   EXTSYSNAME is a function handle to the external model
-    %   function. The external model function must return the intermediate 
+    %   function. The external model function must return the intermediate
     %   variables as a function of the control variables.
-    %   Additionally, it can accept exogenous inputs and it can return 
+    %   Additionally, it can accept exogenous inputs and it can return
     %   unfeasibilities.
     %   The structure of the external model function must be:
     %
     %      [M, UNFEAS] = EXTSYSNAME(U, W);
     %
     %      where:
-    %       U is a cell array, where each cell contains the value for a 
-    %       control variable. 
-    %       W (optional) is a cell array, where each cell contains the 
+    %       U is a cell array, where each cell contains the value for a
+    %       control variable.
+    %       W (optional) is a cell array, where each cell contains the
     %       value for an exogenous input variable.
-    %       M is a cell array, where each cell contains the value for 
+    %       M is a cell array, where each cell contains the value for
     %       an intermediate variable.
     %       UNFEAS (optional) is a boolean variable, set to true for
     %       unfeasible (not allowed) combinations of state variables,
     %       control variables and exogenous inputs. If not needed, return a
     %       empty array ([]) in its place.
-    %   
+    %
     %   INTSYSNAME is a function handle to the internal model function.
     %   The internal model function must return the updated state value
     %   and the stage cost as a function of the current state value, the
-    %   control variables and the intermediate variables. 
-    %   Additionally, it can accept an exogenous input and it can return 
+    %   control variables and the intermediate variables.
+    %   Additionally, it can accept an exogenous input and it can return
     %   unfeasibilities (both are optional).
     %   The structure of the model function must be:
     %
@@ -87,13 +87,13 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %      where:
     %       X is a cell array, where each cell contains the value for a
     %       state variable.
-    %       U is a cell array, where each cell contains the value for a 
+    %       U is a cell array, where each cell contains the value for a
     %       control variable.
-    %       M is a cell array, where each cell contains the value for 
+    %       M is a cell array, where each cell contains the value for
     %       an intermediate variable.
-    %       W (optional) is a cell array, where each cell contains the 
+    %       W (optional) is a cell array, where each cell contains the
     %       value for an exogenous input variable.
-    %       X_NEXT is a cell array, where each cell contains the value for 
+    %       X_NEXT is a cell array, where each cell contains the value for
     %       the updated state variable.
     %       STAGE_COST is a numeric variable, containing the stage cost.
     %       UNFEAS (optional) is a boolean variable, set to true for
@@ -113,44 +113,45 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %           the same length as the number of stages of the optimization
     %           problem.
     %       SafeMode: enables Safe Mode (see the documentation)
-    %       myInf: if VFInitialization is set to 'rift', myInf defines the
+    %       myInf: if VFPenalty is set to 'rift', myInf defines the
     %           penalty cost for unfeasible terminal states.
     %       EnforceStateGrid: set a constraint so that the state variables
     %           do not exceed the state grids. Defaults to true.
     %     # Terminal Cost (Value Function initialization) settings
-    %       VFInitialization: specify how final state values outside of 
+    %       VFPenalty: specify how final state values outside of
     %           the final state constraints bounds should be penalized. Set
     %           to 'rift' to penalize them with a myInf term. Set to
-    %           'linear' to penalize them with a term proportional to the 
-    %           distance from the bounds. Set to 'manual' to use a custom 
+    %           'linear' to penalize them with a term proportional to the
+    %           distance from the bounds. Set to 'manual' to use a custom
     %           terminal cost and define it with TerminalCost. Note that in
     %           this case DynaProg will not attempt to enforce STATEFINAL.
     %       TerminalCost: define a custom terminal cost. Its size must be
     %           composed by the lenghts of the state variable grids (i.e.
     %           length(x1_grid) x length(x2_grid) x ... x length(xn_grid))
-    %       VFFactors: if VFInitialization is set to 'linear', VFFactors 
+    %       VFPenFactors: if VFPenalty is set to 'linear', VFPenFactors
     %           define the proportionality factor for each sv. Specify as a
     %           numeric array.
     %     # Plots settings
     %       StateName: specify state variables names in a string
-    %           array. 
+    %           array.
     %       ControlName: specify state variables names in a string
     %           array.
     %       CostName: specify the cumulative cost name as a string.
     %       Time: specify time instead of stages. This property is only
-    %           used in the plots produced with the plot method. It does not 
+    %           used in the plots produced with the plot method. It does not
     %           affect the optimization.
     %
     %   Author: Federico Miretti
     %
     % <a href="matlab:web html/index.html">Open the full documentation</a>
-    
+
+    %% Properties
     properties
         % Constructor: Main properties
         SysName function_handle
         SysNameExt function_handle
         SysNameInt function_handle
-        StateGrid 
+        StateGrid
         StateInitial
         StateFinal = [];
         ControlGrid
@@ -164,10 +165,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         Time double = [];
         myInf double = 1e6;
         EnforceStateGrid logical = true;
-        VFInitialization char {mustBeMember(VFInitialization, {'rift', 'linear', 'auto'})} = 'auto';
+        VFPenalty char {mustBeMember(VFPenalty, {'rift', 'linear', 'auto'})} = 'auto';
         LevelSetInitialization char = [];
         TerminalCost function_handle = @(x) zeros(cellfun(@length, x));
-        % Results 
+        % Results
         StateProfile
         ControlProfile
         CostProfile
@@ -189,7 +190,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         % Protected dependent properties
         %   These are defined to avoid property initialization order
         %   dependency along with their dependent counterparts
-        VFFactorsProt double = [];
+        VFPenFactorsProt double = [];
         StateNameProt string = [];
         ControlNameProt string = [];
         CostNameProt string = [];
@@ -201,7 +202,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         % Protected dependent properties
         %   These are defined to avoid property initialization order
         %   dependency along with their protected counterparts
-        VFFactors double;
+        VFPenFactors double;
         StateName
         ControlName
         CostName
@@ -210,7 +211,14 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         VF   % Value Function
         Version = "1.6";
     end
-    
+    properties (Transient, Hidden)
+        % Deprecated properties or property names
+        VFFactors
+        VFInitialization
+    end
+
+    %% Methods
+    % User-accessible methods
     methods
         % Constructor method
         function obj = DynaProg(StateGrid, StateInitial, StateFinal, ControlGrid, Nstages, varargin)
@@ -287,8 +295,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         obj = run(obj)
         t = plot(obj)
     end
-    % Methods in external files, hidden
+
+    % Hidden methods (non-user accessible)
     methods (Hidden)
+        % Methods in external files
         obj = create_grids(obj)
         obj = create_intVars(obj)
         obj = backward(obj)
@@ -299,7 +309,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         obj = checkModelFun(obj, name, mode)
     end
 
-    % Set/get methods
+    %% Set/get methods
     methods
         function obj = set.SysNameInt(obj, name)
             obj.SysNameInt = name;
@@ -419,24 +429,24 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 useExoInput = true;
             end
         end
-        function VFFactors = get.VFFactors(obj)
+        function VFPenFactors = get.VFPenFactors(obj)
             % If unspecified, define based on the state grid bounds
-            if isempty(obj.VFFactorsProt)
+            if isempty(obj.VFPenFactorsProt)
                 % Use a smaller penalty if Level Set is used
                 penaltyFactor = ( 1 * obj.UseLevelSet + 10 * ~obj.UseLevelSet );
                 for n = 1:length(obj.N_SV)
-                    VFFactors(n) = abs(obj.StateGrid{n}(end) - obj.StateGrid{n}(1)) * penaltyFactor;
+                    VFPenFactors(n) = abs(obj.StateGrid{n}(end) - obj.StateGrid{n}(1)) * penaltyFactor;
                 end
             else
-                VFFactors = obj.VFFactorsProt;
+                VFPenFactors = obj.VFPenFactorsProt;
             end
         end
-        function obj = set.VFFactors(obj, VFFactors)
+        function obj = set.VFPenFactors(obj, VFPenFactors)
             % Validate size
-            if length(VFFactors) ~= length(obj.N_SV)
-                error('DynaProg:wrongSizeVFFactors', 'VFFactors must be a numeric array specifying one value for each of the state variables.')
+            if length(VFPenFactors) ~= length(obj.N_SV)
+                error('DynaProg:wrongSizeVFPenFactors', 'VFPenFactors must be a numeric array specifying one value for each of the state variables.')
             end
-            obj.VFFactorsProt = VFFactors;
+            obj.VFPenFactorsProt = VFPenFactors;
         end
         function stateName = get.StateName(obj)
             % If unspecified (left empty), set StateName to ['x_1', 'x_2', ...]
@@ -494,10 +504,26 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 obj.CostNameProt = costName;
             end
         end
+        function obj = set.VFInitialization(obj, VFPenalty)
+            obj.VFPenalty = VFPenalty;
+            warning("Property 'VFInitialization' is deprecated. Use 'VFPenalty' instead.")
+        end
+        function VFPenalty = get.VFInitialization(obj)
+            VFPenalty = obj.VFPenalty;
+            warning("Property 'VFInitialization' is deprecated. Use 'VFPenalty' instead.")
+        end
+        function obj = set.VFFactors(obj, VFPenFactors)
+            obj.VFPenFactors = VFPenFactors;
+            warning("Property 'VFFactors' is deprecated. Use 'VFPenFactors' instead.")
+        end
+        function VFPenFactors = get.VFFactors(obj)
+            VFPenFactors = obj.VFPenFactors;
+            warning("Property 'VFFactors' is deprecated. Use 'VFPenFactors' instead.")
+        end
     end
     
+    %% Static methods
     methods (Static)
-        
         function [A, linear_index] = min_compatibility(A, vecdim)
             %min_compatibilty min function for releases 2018b and lower
             % Returns the same as
@@ -523,8 +549,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             end
             
             linear_index = sub2ind(dims, subs{:});
-            
         end
-        
     end
+
 end
