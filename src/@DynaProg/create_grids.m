@@ -39,18 +39,18 @@ if isempty(obj.LevelSetInitialization)
 end
 
 % State grids as N_SV_n-by-1 vectors, needed to create VF interpolants
-obj.StateGridVect = cellfun(@(x) x(:), obj.StateGrid, 'UniformOutput', false);
+obj.StateGridCol = cellfun(@(x) x(:), obj.StateGrid, 'UniformOutput', false);
 
-% Combined SV and CV grids
+% Full SV and CV grids
 if obj.SafeMode
-    obj.StateCombGrid = cell(1, length(obj.N_SV));
-    obj.ControlCombGrid = cell(1, length(obj.N_CV));
-    [obj.StateCombGrid{:}, obj.ControlCombGrid{:}] = ndgrid(obj.StateGrid{:}, obj.ControlGrid{:});
+    obj.StateFullGrid = cell(1, length(obj.N_SV));
+    obj.ControlFullGrid = cell(1, length(obj.N_CV));
+    [obj.StateFullGrid{:}, obj.ControlFullGrid{:}] = ndgrid(obj.StateGrid{:}, obj.ControlGrid{:});
 end
 
-% Full CV grid
-obj.ControlFullGrid = cell(1, length(obj.ControlGrid));
-[obj.ControlFullGrid{:}] = ndgrid(obj.ControlGrid{:});
+% Combined CV grid
+obj.ControlCombGrid = cell(1, length(obj.ControlGrid));
+[obj.ControlCombGrid{:}] = ndgrid(obj.ControlGrid{:});
 for n = 1:length(obj.N_CV)
     obj.ControlGrid{n} = obj.ControlGrid{n}(:);
     obj.ControlGrid{n} = shiftdim(obj.ControlGrid{n}, -length(obj.StateGrid) - (n-1));
@@ -64,15 +64,15 @@ if ~isempty(obj.StateFinal)
         case 'linear' %VFN is proportional to the distance from the target set
             for n = 1:length(obj.StateGrid)
                 if ~isempty(obj.StateFinal{n})
-                    VFN = VFN + obj.VFFactors(n) .* ( max(obj.StateFinal{n}(1)-StateFullGrid{n}, 0) + max(StateFullGrid{n}-obj.StateFinal{n}(2), 0) );
+                    VFN = VFN + obj.VFFactors(n) .* ( max(obj.StateFinal{n}(1)-StateCombGrid{n}, 0) + max(StateCombGrid{n}-obj.StateFinal{n}(2), 0) );
                 end
             end
             VFN(isinf(VFN)) = 0;
         case 'rift' % VFN is inf outside the target set
             for n=1:length(obj.StateGrid)
                 if ~isempty(obj.StateFinal{n})
-                    VFN( StateFullGrid{n} > obj.StateFinal{n}(2) ...
-                        | StateFullGrid{n} < obj.StateFinal{n}(1)) = obj.myInf;
+                    VFN( StateCombGrid{n} > obj.StateFinal{n}(2) ...
+                        | StateCombGrid{n} < obj.StateFinal{n}(1)) = obj.myInf;
                 end
             end
         case 'manual'
@@ -85,17 +85,17 @@ if ~isempty(obj.StateFinal)
 end
 % Allocate cell array for the VF interpolants and create the interpolant
 obj.VF = cell(1, obj.Nstages+1);
-obj.VF{end} = griddedInterpolant(obj.StateGridVect, VFN, ...
+obj.VF{end} = griddedInterpolant(obj.StateGridCol, VFN, ...
     'linear');
 % Initialize Level Set function
 if obj.UseLevelSet
     LevelSetN = cell(1,length(obj.StateGrid));
     for n=1:length(obj.StateGrid)
         if ~isempty(obj.StateFinal{n})
-            LevelSetN{n} = max( obj.StateFinal{n}(1) - StateFullGrid{n}, ...
-                StateFullGrid{n} - obj.StateFinal{n}(2) );
+            LevelSetN{n} = max( obj.StateFinal{n}(1) - StateCombGrid{n}, ...
+                StateCombGrid{n} - obj.StateFinal{n}(2) );
         else
-            LevelSetN{n} = zeros(size(StateFullGrid{n}));
+            LevelSetN{n} = zeros(size(StateCombGrid{n}));
         end
     end
     LevelSetN = cat(length(LevelSetN)+1,LevelSetN{:});
@@ -103,7 +103,7 @@ if obj.UseLevelSet
 
     % Allocate cell array for the LevelSet interpolants and create the interpolant
     obj.LevelSet = cell(1, obj.Nstages+1);
-    obj.LevelSet{end} = griddedInterpolant(obj.StateGridVect, LevelSetN, ...
+    obj.LevelSet{end} = griddedInterpolant(obj.StateGridCol, LevelSetN, ...
         'linear');
 
 end

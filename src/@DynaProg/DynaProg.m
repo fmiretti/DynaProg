@@ -176,10 +176,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     end
     properties (Access = protected)
         % Computational grids, value and level-set function
-        StateCombGrid
-        StateGridVect % State grids as N_SV_n-by-1 vectors, needed to create VF interpolants
-        ControlCombGrid
-        ControlFullGrid % Full CV grid
+        StateFullGrid % Full grids for the SVs 
+        StateGridCol % State grids as column vectors, needed to create VF interpolants
+        ControlFullGrid % Full grids for the CVs
+        ControlCombGrid % Combined CV grid (only combines the CV dimensions)
         LevelSet % Level-Set function
         IntermediateVars
         unFeasExt
@@ -226,7 +226,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             %  or
             %   SysNameExt
             %   SysNameInt
-            
+
             % Handle varargin (Set SysName(s), extract nvps)
             % varargin contains either:
             % - sysname
@@ -254,7 +254,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                         'arguments. Specify them as function handle(s).'])
                 end
             end
-            
+
             % Set other mandatory arguments
             obj.StateGrid = StateGrid;
             obj.StateInitial = StateInitial;
@@ -267,7 +267,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             % Check that the NameValuePair cell array is even
             if mod(length(NameValuePair), 2) ~= 0
                 error('DynaProg:oddNVP', ['Additional settings must be '...
-                        'specified as name-value pairs.'])
+                    'specified as name-value pairs.'])
             end
             % Check that the NameValuePair names are string or char array
             for n=1:length(nvpNames)
@@ -283,13 +283,11 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 obj.(nvpNames{n}) = nvpValues{n};
             end
         end
-    end 
-
-    % Methods in other files
-    methods
+        % Methods in external files
         obj = run(obj)
         t = plot(obj)
     end
+    % Methods in external files, hidden
     methods (Hidden)
         obj = create_grids(obj)
         obj = create_intVars(obj)

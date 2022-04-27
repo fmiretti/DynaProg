@@ -2,7 +2,7 @@ function obj = forward(obj)
 % Run the optimization algorithm forward phase
 
 if obj.SafeMode
-    control = obj.ControlFullGrid;
+    control = obj.ControlCombGrid;
     % Vector dimensions corresponding to CVs
     vecdim_cv = 1:length(obj.N_CV);
 else
@@ -36,7 +36,7 @@ for k = 1:obj.Nstages
     % Expand current state to the full cv grid
     if obj.SafeMode
         for n = 1:length(state)
-            state_next{n} = state{n} + zeros(size(obj.ControlFullGrid{1}));
+            state_next{n} = state{n} + zeros(size(obj.ControlCombGrid{1}));
         end
     else
         state_next = state;
@@ -53,7 +53,7 @@ for k = 1:obj.Nstages
         exoInput_temp = obj.ExogenousInput(k,:);
         for n = 1:length(exoInput_temp)
             if obj.SafeMode
-                exoInput{n} = exoInput_temp(n).*ones(size(obj.ControlFullGrid{1}));
+                exoInput{n} = exoInput_temp(n).*ones(size(obj.ControlCombGrid{1}));
             else
                 exoInput{n} = exoInput_temp(n);
             end
@@ -107,7 +107,7 @@ for k = 1:obj.Nstages
         % minimizes the level-set function.
         index_opt(isempty_UR) = MinLevelSetCV;
     end
-    cv_opt =  cellfun(@(x) x(index_opt), obj.ControlFullGrid, 'UniformOutput', false);
+    cv_opt =  cellfun(@(x) x(index_opt), obj.ControlCombGrid, 'UniformOutput', false);
 
     % Extract the intermediate variables for the optimal cv
     if obj.UseSplitModel

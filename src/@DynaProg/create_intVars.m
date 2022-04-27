@@ -2,17 +2,19 @@ function obj = create_intVars(obj)
 % Run external model to create intermediate variables
 exoInput = cell(1, size(obj.ExogenousInput, 2));
 if obj.SafeMode
-    control = obj.ControlFullGrid;
+    control = obj.ControlCombGrid;
 else
     control = obj.ControlGrid;
 end
+
+
 for k = 1:obj.Nstages
     % Create exogenous inputs
     if obj.UseExoInput
         currentExoInput = obj.ExogenousInput(k,:);
         for n = 1:length(currentExoInput)
             if obj.SafeMode
-                exoInput{n} = currentExoInput(n).*ones(size(obj.ControlFullGrid{1}));
+                exoInput{n} = currentExoInput(n).*ones(size(obj.ControlCombGrid{1}));
             else
                 exoInput{n} = currentExoInput(n);
             end

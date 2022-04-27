@@ -1,8 +1,8 @@
 function obj = backward(obj)
 % Run the optimization algorithm backward phase
 if obj.SafeMode
-    state = obj.StateCombGrid;
-    control = obj.ControlCombGrid;
+    state = obj.StateFullGrid;
+    control = obj.ControlFullGrid;
 else
     state = obj.StateGrid;
     control = obj.ControlGrid;
@@ -34,7 +34,7 @@ for k = obj.Nstages:-1:1
         currentExoInput = obj.ExogenousInput(k,:);
         for n = 1:length(currentExoInput)
             if obj.SafeMode
-                exoInput{n} = currentExoInput(n).*ones(size(obj.StateCombGrid{1}));
+                exoInput{n} = currentExoInput(n).*ones(size(obj.StateFullGrid{1}));
             else
                 exoInput{n} = currentExoInput(n);
             end

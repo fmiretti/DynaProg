@@ -17,7 +17,7 @@ if obj.UseLevelSet
         error('DynaProg:failedLevelSetUpdate', 'The level set function update has failed: no feasible solution was found. Your problem might be overconstrained or the state variables grid might be too coarse.\n')
     end
     % Construct L approximating function for the current timestep
-    obj.LevelSet{k} = griddedInterpolant(obj.StateGridVect, ...
+    obj.LevelSet{k} = griddedInterpolant(obj.StateGridCol, ...
         LevelSetValue, 'linear');
 end
 
@@ -41,7 +41,7 @@ if obj.UseLevelSet
 end
 
 % Construct VF approximating function for the current timestep
-obj.VF{k} = griddedInterpolant(obj.StateGridVect, cost_opt, ...
+obj.VF{k} = griddedInterpolant(obj.StateGridCol, cost_opt, ...
     'linear');
 
 % Warn the user if there are no feasible trajectories for
