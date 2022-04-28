@@ -47,17 +47,6 @@ for k = obj.Nstages:-1:1
     [states_next, stageCost, unFeasInt] = model_wrapper(obj, state, control, exoInput, intVars);
     unFeasInt = logical(unFeasInt);
 
-    % Model output checks
-    if k == obj.Nstages
-        if iscell(stageCost)
-            error('DynaProg:wrongFormatStageCost', ['The stage '...
-                'cost must be returned as a numeric type, not a cell.'])
-        elseif ~isnumeric(stageCost)
-            error('DynaProg:wrongFormatStageCost', ['The stage '...
-                'cost must be returned as a numeric type.'])
-        end
-    end
-
     % feasibility: include external model unfeasibility
     if obj.UseSplitModel
         unFeas = unFeasInt | unfeasExt;
