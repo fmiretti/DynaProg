@@ -696,6 +696,10 @@ classdef (CaseInsensitiveProperties=true) DynaProg
                 end
                 cv_opt =  cellfun(@(x) x(index_opt), obj.ControlFullGrid, 'UniformOutput', false);
                 
+                % Extract the exogenous inputs for the optimal cv
+                if obj.UseExoInput && obj.SafeMode
+                    exoInput = cellfun(@(x) x(index_opt), exoInput, 'UniformOutput', false);
+                end
                 % Extract the intermediate variables for the optimal cv
                 if obj.UseSplitModel
                     intVars = cellfun(@(x) x .* ones(size(cost)), intVars, 'UniformOutput', false);
