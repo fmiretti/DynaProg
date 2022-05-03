@@ -50,13 +50,13 @@ for k = 1:obj.Nstages
     end
     % Create exogenous inputs
     if obj.UseExoInput
-        exoInput_temp = obj.ExogenousInput(k,:);
-        for n = 1:length(exoInput_temp)
-            if obj.SafeMode
-                exoInput{n} = exoInput_temp(n).*ones(size(obj.ControlCombGrid{1}));
-            else
-                exoInput{n} = exoInput_temp(n);
+        exoInput_scalar = num2cell(obj.ExogenousInput(k,:));
+        if obj.SafeMode
+            for n = 1:length(exoInput_scalar)
+                exoInput{n} = exoInput_scalar{n}.*ones(size(obj.ControlCombGrid{1}));
             end
+        else
+            exoInput = exoInput_scalar;
         end
     else
         exoInput = [];
@@ -79,10 +79,10 @@ for k = 1:obj.Nstages
     end
 
     % Find the optimal cvs
-    [obj, cv_opt, exoInput_opt, intVars_opt] = optimalControl(obj, k, state_next, stageCost, unfeas, vecdim_cv, exoInput_scalar, intVars);
+    [obj, cv_opt, intVars_opt] = optimalControl(obj, k, state_next, stageCost, unfeas, vecdim_cv, intVars);
 
     % Advance the simulation
-    [state, stageCost_opt, unfeas_opt, addout] = model_wrapper(obj, state, cv_opt, exoInput_opt, intVars_opt);
+    [state, stageCost_opt, unfeas_opt, addout] = model_wrapper(obj, state, cv_opt, exoInput_scalar, intVars_opt);
 
     % Check solution validity
     if unfeas_opt

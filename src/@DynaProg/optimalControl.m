@@ -1,4 +1,4 @@
-function [obj, cv_opt, exoInput_opt, intVars_opt] = optimalControl(obj, k, state_next, stageCost, unfeas, vecdim_cv, exoInput, intVars)
+function [obj, cv_opt, intVars_opt] = optimalControl(obj, k, state_next, stageCost, unfeas, vecdim_cv, intVars)
 %optimaControl find optimal controls for the current stage
 
 % Get level set - minimizing cv
@@ -31,13 +31,6 @@ if obj.UseLevelSet
     index_opt(isempty_UR) = MinLevelSetCV;
 end
 cv_opt =  cellfun(@(x) x(index_opt), obj.ControlCombGrid, 'UniformOutput', false);
-
-% Extract the exogenous inputs for the optimal cv
-if obj.UseExoInput && obj.SafeMode
-    exoInput_opt = cellfun(@(x) x(index_opt), exoInput, 'UniformOutput', false);
-else
-    exoInput_opt = exoInput;
-end
 
 % Extract the intermediate variables for the optimal cv
 if obj.UseSplitModel
