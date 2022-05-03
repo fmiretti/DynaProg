@@ -18,9 +18,9 @@ fprintf('DP forward progress:    ')
 StateProfileMat = zeros(length(obj.StateGrid), obj.Nstages+1);
 StateProfileMat(:,1) = [obj.StateInitial{:}];
 ControlProfileMat = zeros(length(obj.ControlGrid), obj.Nstages);
+obj.CostProfile = zeros(1, obj.Nstages);
 % Initialize the state
 state = obj.StateInitial;
-obj.CostProfile(1) = 0;
 state_next = cell(1, length(obj.N_SV));
 exoInput = cell(1, size(obj.ExogenousInput, 2));
 % Initialize warnings
@@ -137,7 +137,7 @@ for k = 1:obj.Nstages
             obj.AddOutputsProfile{n}(k) = addout{n};
         end
     end
-    obj.CostProfile(k+1) = stageCost;
+    obj.CostProfile(k) = stageCost;
 end
 % Check terminal state constraints
 for n = 1:length(obj.StateFinal)
