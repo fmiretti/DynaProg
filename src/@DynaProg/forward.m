@@ -78,48 +78,9 @@ for k = 1:obj.Nstages
         unfeas = unfeas | false([ones(1, length(obj.N_SV)) obj.N_CV]);
     end
 
-    % Get Level Set-minimizing CV
-    if obj.UseLevelSet
-        % Read L(k+1)
-        LevelSet_next = obj.LevelSet{k+1}(state_next{:});
-        % set LevelSet_next to inf for the unfeasible CVs
-        LevelSet_next(unFeas) = obj.myInf;
-        % Determine if U^R(x_k) is empty
-        isempty_UR = all(LevelSet_next(:) > 0);
-        % Find L-minimizing u
-        [~, MinLevelSetCV] = obj.minfun(LevelSet_next, vecdim_cv);
-    end
+    % Find the optimal cvs
+    [obj, cv_opt, exoInput_opt, intVars_opt] = optimalControl(obj, k, state_next, stageCost, unfeas, vecdim_cv, exoInput_scalar, intVars);
 
-    % Read VF(k+1)
-    VF_next =  obj.VF{k+1}(state_next{:});
-    cost = stageCost + VF_next;
-    if obj.UseLevelSet
-        cost(unFeas) = obj.myInf;
-        cost(LevelSet_next > 0) = obj.myInf;
-    end
-    % Set cost-to-go to inf for the unfeasible/unreachable CVs
-    cost(unFeas) = obj.myInf;
-
-    % Find optimal control as a function of the current state
-    [~, index_opt] = obj.minfun(cost, vecdim_cv);
-    if obj.UseLevelSet
-        % If no reachable cv was found (isempty_UR), select the cv that
-        % minimizes the level-set function.
-        index_opt(isempty_UR) = MinLevelSetCV;
-    end
-    cv_opt =  cellfun(@(x) x(index_opt), obj.ControlCombGrid, 'UniformOutput', false);
-
-    % Extract the exogenous inputs for the optimal cv
-    if obj.UseExoInput && obj.SafeMode
-        exoInput = cellfun(@(x) x(index_opt), exoInput, 'UniformOutput', false);
-    end
-    % Extract the intermediate variables for the optimal cv
-    if obj.UseSplitModel
-        intVars = cellfun(@(x) x .* ones(size(cost)), intVars, 'UniformOutput', false);
-        intVars_opt = cellfun(@(x) x(index_opt), intVars, 'UniformOutput', false);
-    else
-        intVars_opt = [];
-    end
     % Advance the simulation
     [state, stageCost_opt, unfeas_opt, addout] = model_wrapper(obj, state, cv_opt, exoInput_opt, intVars_opt);
 

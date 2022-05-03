@@ -305,6 +305,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         obj = forward(obj)
         [states_next, stageCost, unFeas, addOutputs] = model_wrapper(obj, state, control, exoInput, IntermediateVars)
         [obj, cv_opt_idx, cost_opt] = updateVF(obj, k, states_next, stageCost, unFeas, vecdim_cv)
+        [obj, cv_opt, exoInput, intVars_opt] = optimalControl(obj, k, state_next, stageCost, unfeas, vecdim_cv, exoInput, intVars)
         obj = check_StateFinal(obj)
         obj = checkModelFun(obj, name, mode)
     end
