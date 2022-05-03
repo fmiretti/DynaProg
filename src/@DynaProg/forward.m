@@ -3,11 +3,11 @@ function obj = forward(obj)
 
 if obj.SafeMode
     control = obj.ControlCombGrid;
-    % Vector dimensions corresponding to CVs
+    % Vector dimensions corresponding to cvs
     vecdim_cv = 1:length(obj.N_CV);
 else
     control = obj.ControlGrid;
-    % Vector dimensions corresponding to CVs
+    % Vector dimensions corresponding to cvs
     vecdim_cv = (1:length(obj.N_CV)) + length(obj.N_SV);
 end
 
@@ -33,7 +33,7 @@ for k = 1:obj.Nstages
         fprintf('%s%2d %%', ones(1,4)*8, floor((k-1)/obj.Nstages*100));
     end
 
-    % Expand current state to the full cv grid
+    % Expand current state to the combined cv grid
     if obj.SafeMode
         for n = 1:length(state)
             state_next{n} = state{n} + zeros(size(obj.ControlCombGrid{1}));
@@ -63,19 +63,19 @@ for k = 1:obj.Nstages
     end
 
     % Evaluate state update and stage cost
-    [state_next, stageCost, unFeas] = model_wrapper(obj, state_next, control, exoInput, intVars);
-    unFeas = logical(unFeas);
+    [state_next, stageCost, unfeas] = model_wrapper(obj, state_next, control, exoInput, intVars);
+    unfeas = logical(unfeas);
     if obj.UseSplitModel
-        unFeas = unFeas | unfeasExt;
+        unfeas = unfeas | unfeasExt;
     end
 
-    % Expand updated states and unfeas to the full cv grid
+    % Expand updated states and unfeas to the combined cv grid
     if ~obj.SafeMode
         for n = 1:length(state_next)
             state_next{n} = state_next{n} + zeros([ones(1, length(obj.N_SV)) obj.N_CV]);
         end
         stageCost = stageCost + zeros([ones(1, length(obj.N_SV)) obj.N_CV]);
-        unFeas = unFeas | false([ones(1, length(obj.N_SV)) obj.N_CV]);
+        unfeas = unfeas | false([ones(1, length(obj.N_SV)) obj.N_CV]);
     end
 
     % Get Level Set-minimizing CV
@@ -121,10 +121,10 @@ for k = 1:obj.Nstages
         intVars_opt = [];
     end
     % Advance the simulation
-    [state, stageCost, unfeas, addout] = model_wrapper(obj, state, cv_opt, exoInput, intVars_opt);
+    [state, stageCost_opt, unfeas_opt, addout] = model_wrapper(obj, state, cv_opt, exoInput_opt, intVars_opt);
 
     % Check solution validity
-    if unfeas
+    if unfeas_opt
         unfeasFwdWarnStages(end+1) = k;
         unfeasFwdWarn = true;
     end
@@ -137,8 +137,9 @@ for k = 1:obj.Nstages
             obj.AddOutputsProfile{n}(k) = addout{n};
         end
     end
-    obj.CostProfile(k) = stageCost;
+    obj.CostProfile(k) = stageCost_opt;
 end
+
 % Check terminal state constraints
 for n = 1:length(obj.StateFinal)
     if ~isempty(obj.StateFinal{n})
@@ -148,12 +149,13 @@ for n = 1:length(obj.StateFinal)
                 ' 1) your problem is overconstrained. Try widening the final state constraint bounds.\n' ...
                 ' 2) The state variables grid might be too coarse. Try refining the grids.\n' ...
                 ' 3) You set VFPenalty to ''linear'' but the VFPenFactors are not large enough. Try increasing them.\n' ...
-                'You can also try using the Level Set option.\n'])
+                'You can also try using the UseLevelSet option.\n'])
             progressbar = false;
             break
         end
     end
 end
+
 % Print information about constraints violation in the fwd run
 if unfeasFwdWarn
     unfeasFwdWarnStages(end+1) = k;
@@ -169,11 +171,14 @@ if unfeasFwdWarn
     unfeasFwdWarnStages = num2cell(unfeasFwdWarnStages);
     warning('DynaProg:failedForward', str, unfeasFwdWarnStages{:})
 end
+
 % Store state and control profiles
 obj.StateProfile = num2cell(StateProfileMat,2);
 obj.ControlProfile = num2cell(ControlProfileMat,2);
+
 % Progress Bar
 if progressbar
     fprintf('%s%2d %%\n', ones(1,4)*8, 100);
 end
+
 end

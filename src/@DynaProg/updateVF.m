@@ -1,15 +1,17 @@
-function [obj, cv_opt_idx, cost_opt] = updateVF(obj, k, states_next, stageCost, unFeas, vecdim_cv)
+function [obj, cv_opt_idx, cost_opt] = updateVF(obj, k, states_next, stageCost, unfeas, vecdim_cv)
+%updateVF value function update
+
 % Update Level-Set function
 if obj.UseLevelSet
     % Read L(k+1)
     LevelSet_next = obj.LevelSet{k+1}(states_next{:});
-    % set LevelSet_next to inf for the unfeasible CVs
-    LevelSet_next(unFeas) = obj.myInf;
-    % Update level-set function and find L-minimizing CVs
+    % set LevelSet_next to inf for the unfeasible cvs
+    LevelSet_next(unfeas) = obj.myInf;
+    % Update level-set function and find L-minimizing cvs
     [LevelSetValue, MinLevelSetCV] = obj.minfun(LevelSet_next, vecdim_cv);
-    % Check if the set of reachable CVs U^R(x_k) (CVs that
+    % Check if the set of reachable cvs U^R(x_k) (cvs that
     % lead to a reachable state) is empty. Note: U^R(x_k) is
-    % a subset of U(x_k) (set of feasible CVs).
+    % a subset of U(x_k) (set of feasible cvs).
     isempty_UR = LevelSetValue>0;
     % Level set failure
     if all(LevelSetValue>0)
@@ -24,8 +26,8 @@ end
 % Read VF(k+1)
 VF_next =  obj.VF{k+1}(states_next{:});
 cost = stageCost + VF_next;
-% Set cost-to-go to inf for the unfeasible/unreachable CVs
-cost(unFeas) = obj.myInf;
+% Set cost-to-go to inf for the unfeasible/unreachable cvs
+cost(unfeas) = obj.myInf;
 % Find optimal control as a function of the current state
 [cost_opt, cv_opt_idx] = obj.minfun(cost, vecdim_cv);
 

@@ -60,9 +60,9 @@ for k = obj.Nstages:-1:1
 
     % feasibility: include external model unfeasibility
     if obj.UseSplitModel
-        unFeas = unFeasInt | unfeasExt;
+        unfeas = unFeasInt | unfeasExt;
     else
-        unFeas = unFeasInt;
+        unfeas = unFeasInt;
     end
     if ~obj.SafeMode
         % Expand updated states and unfeas to the combined grid
@@ -70,17 +70,17 @@ for k = obj.Nstages:-1:1
             states_next{n} = states_next{n} + zeros([obj.N_SV obj.N_CV]);
         end
         stageCost = stageCost + zeros([obj.N_SV obj.N_CV]);
-        unFeas = unFeas | false([obj.N_SV obj.N_CV]);
+        unfeas = unfeas | false([obj.N_SV obj.N_CV]);
     end
     % Enforce state grids
     if obj.EnforceStateGrid
         for n = 1:length(obj.N_SV)
-            unFeas(states_next{n} > obj.StateGrid{n}(end) | states_next{n} < obj.StateGrid{n}(1)) = obj.myInf;
+            unfeas(states_next{n} > obj.StateGrid{n}(end) | states_next{n} < obj.StateGrid{n}(1)) = obj.myInf;
         end
     end
 
     % Update the value function
-    [obj, cv_opt] = updateVF(obj, k, states_next, stageCost, unFeas, vecdim_cv);
+    [obj, cv_opt] = updateVF(obj, k, states_next, stageCost, unfeas, vecdim_cv);
 
     % Store cv map
     if obj.StoreControlMap
