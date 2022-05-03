@@ -48,7 +48,7 @@ end
 % Initialize terminal VF with the terminal cost
 VFN = obj.TerminalCost(obj.StateGrid);
 % Check user-supplied terminal cost
-if ~isequal(size(VFN), obj.N_SV)
+if ( length(obj.N_SV) > 1 && ~isequal(size(VFN), obj.N_SV) ) || ( length(obj.N_SV) == 1 && ~isequal(length(VFN), obj.N_SV) )
     error('DynaProg:wrongSizeTerminalCost', strjoin({'The terminal cost function you provided returns a cost with wrong size. It should be', sprintf('%dx', obj.N_SV), sprintf('\b\b (the lengths of the state grids).'), '\n'}))
 end
 

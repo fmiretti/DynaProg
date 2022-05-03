@@ -167,7 +167,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         EnforceStateGrid logical = true;
         VFPenalty char {mustBeMember(VFPenalty, {'rift', 'linear', 'auto'})} = 'auto';
         LevelSetInitialization char = [];
-        TerminalCost function_handle = @(x) zeros(cellfun(@length, x));
+        TerminalCost function_handle = @(x) zeros( [cellfun(@length, x) 1] );
         % Results
         StateProfile
         ControlProfile
