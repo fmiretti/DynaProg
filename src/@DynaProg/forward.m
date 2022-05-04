@@ -21,7 +21,7 @@ ControlProfileMat = zeros(length(obj.ControlGrid), obj.Nstages);
 obj.CostProfile = zeros(1, obj.Nstages);
 % Initialize the state
 state = obj.StateInitial;
-state_next = cell(1, length(obj.N_SV));
+state_exp = cell(1, length(obj.N_SV));
 exoInput = cell(1, size(obj.ExogenousInput, 2));
 % Initialize warnings
 unfeasFwdWarn = false;
@@ -36,10 +36,10 @@ for k = 1:obj.Nstages
     % Expand current state to the combined cv grid
     if obj.SafeMode
         for n = 1:length(state)
-            state_next{n} = state{n} + zeros(size(obj.ControlCombGrid{1}));
+            state_exp{n} = state{n} + zeros(size(obj.ControlCombGrid{1}));
         end
     else
-        state_next = state;
+        state_exp = state;
     end
     % Create intermediate vaiables
     if obj.UseSplitModel
@@ -60,10 +60,11 @@ for k = 1:obj.Nstages
         end
     else
         exoInput = [];
+        exoInput_scalar = [];
     end
 
     % Evaluate state update and stage cost
-    [state_next, stageCost, unfeas] = model_wrapper(obj, state_next, control, exoInput, intVars);
+    [state_next, stageCost, unfeas] = model_wrapper(obj, state_exp, control, exoInput, intVars);
     unfeas = logical(unfeas);
     if obj.UseSplitModel
         unfeas = unfeas | unfeasExt;
