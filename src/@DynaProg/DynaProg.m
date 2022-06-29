@@ -118,16 +118,18 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %       EnforceStateGrid: set a constraint so that the state variables
     %           do not exceed the state grids. Defaults to true.
     %     # Terminal Cost (Value Function initialization) settings
+    %       TerminalCost: define a custom terminal cost as a function 
+    %           handle. The function handle must accept only one input 
+    %           (the final states in a cell array) and it must return the 
+    %           terminal cost. The size of the output must be composed by 
+    %           the lenghts of the state variable grids (i.e.
+    %           length(x1_grid) x length(x2_grid) x ... x length(xn_grid)).
     %       VFPenalty: specify how final state values outside of
     %           the final state constraints bounds should be penalized. Set
     %           to 'rift' to penalize them with a myInf term. Set to
     %           'linear' to penalize them with a term proportional to the
-    %           distance from the bounds. Set to 'manual' to use a custom
-    %           terminal cost and define it with TerminalCost. Note that in
-    %           this case DynaProg will not attempt to enforce STATEFINAL.
-    %       TerminalCost: define a custom terminal cost. Its size must be
-    %           composed by the lenghts of the state variable grids (i.e.
-    %           length(x1_grid) x length(x2_grid) x ... x length(xn_grid))
+    %           distance from the bounds. Set to 'none' to disable the
+    %           penalty altogether.
     %       VFPenFactors: if VFPenalty is set to 'linear', VFPenFactors
     %           define the proportionality factor for each sv. Specify as a
     %           numeric array.
@@ -165,7 +167,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         Time double = [];
         myInf double = 1e6;
         EnforceStateGrid logical = true;
-        VFPenalty char {mustBeMember(VFPenalty, {'rift', 'linear', 'auto'})} = 'auto';
+        VFPenalty char {mustBeMember(VFPenalty, {'none', 'rift', 'linear', 'auto'})} = 'auto';
         LevelSetInitialization char = [];
         TerminalCost function_handle = @(x) zeros( [cellfun(@length, x) 1] );
         % Results
