@@ -75,7 +75,7 @@ for k = obj.Nstages:-1:1
     % Enforce state grids
     if obj.EnforceStateGrid
         for n = 1:length(obj.N_SV)
-            unfeas(states_next{n} > obj.StateGrid{n}(end) | states_next{n} < obj.StateGrid{n}(1)) = obj.myInf;
+            unfeas(states_next{n} > obj.StateGrid{n}(end) | states_next{n} < obj.StateGrid{n}(1)) = true;
         end
     end
 

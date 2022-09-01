@@ -78,7 +78,13 @@ for k = 1:obj.Nstages
         stageCost = stageCost + zeros([ones(1, length(obj.N_SV)) obj.N_CV]);
         unfeas = unfeas | false([ones(1, length(obj.N_SV)) obj.N_CV]);
     end
-
+    % Enforce state grids
+    if obj.EnforceStateGrid
+        for n = 1:length(obj.N_SV)
+            unfeas(state_next{n} > obj.StateGrid{n}(end) | state_next{n} < obj.StateGrid{n}(1)) = true;
+        end
+    end
+    
     % Find the optimal cvs
     [obj, cv_opt, intVars_opt] = optimalControl(obj, k, state_next, stageCost, unfeas, vecdim_cv, intVars);
 
