@@ -14,9 +14,9 @@ if obj.UseLevelSet
     % a subset of U(x_k) (set of feasible cvs).
     isempty_UR = LevelSetValue>0;
     % Level set failure
-    if all(LevelSetValue>0)
+    if obj.failedBackward == 0 && all( LevelSetValue(:) > 0 )
         fprintf('\n')
-        error('DynaProg:failedLevelSetUpdate', 'The level set function update has failed: no feasible solution was found. Your problem might be overconstrained or the state variables grid might be too coarse.\n')
+        warning('DynaProg:failedLevelSetUpdate', 'The level set function update has failed: no feasible solution was found. Your problem might be overconstrained or the state variables grid might be too coarse.\n')
     end
     % Construct L approximating function for the current timestep
     obj.LevelSet{k} = griddedInterpolant(obj.StateGridCol, ...
@@ -47,9 +47,11 @@ obj.VF{k} = griddedInterpolant(obj.StateGridCol, cost_opt, ...
     'linear');
 
 % Warn the user if there are no feasible trajectories for
-% the tail subproblem
-if all(cost_opt >= obj.myInf)
-    warning('DynaProg:failedCostToGoUpdate', 'The Cost-to-Go update has failed. Your problem might be overconstrained or the state variables grid might be too coarse.')
-    warning('off', 'DynaProg:failedCostToGoUpdate')
+% the tail subproblem; do not trigger more than once
+if obj.failedBackward == 0 && all(cost_opt(:) >= obj.myInf)
+    obj.failedBackward = k;
+    fprintf('\n')
+    warning('DynaProg:failedCostToGoUpdate', ['The Cost-to-Go update has' ...
+        ' failed at stage %d. Your problem might be overconstrained.'], k)
 end
 end

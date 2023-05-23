@@ -108,37 +108,45 @@ for k = 1:obj.Nstages
     obj.CostProfile(k) = stageCost_opt;
 end
 
-% Check terminal state constraints
-for n = 1:length(obj.StateFinal)
-    if ~isempty(obj.StateFinal{n})
-        if state{n} < obj.StateFinal{n}(1) || state{n} > obj.StateFinal{n}(2)
-            fprintf('\n')
-            warning('DynaProg:failedTerminalState', ['The solution violates your terminal state constraints. This may be caused by: \n' ...
-                ' 1) your problem is overconstrained. Try widening the final state constraint bounds.\n' ...
-                ' 2) The state variables grid might be too coarse. Try refining the grids.\n' ...
-                ' 3) You set VFPenalty to ''linear'' but the VFPenFactors are not large enough. Try increasing them.\n' ...
-                'You can also try using the UseLevelSet option.\n' ...
-                ' 4) You set VFPenalty to ''none''. In this case you probably know what you are doing.\n'])
-            progressbar = false;
-            break
+% Forward phase warnings; do not print if the backward phase failed first
+if obj.failedBackward == 0
+    % Check terminal state constraints
+    for n = 1:length(obj.StateFinal)
+        if ~isempty(obj.StateFinal{n})
+            if state{n} < obj.StateFinal{n}(1) || state{n} > obj.StateFinal{n}(2)
+                fprintf('\n')
+                warning('DynaProg:failedTerminalState', ['The solution violates your terminal state constraints. This may be caused by: \n' ...
+                    ' 1) your problem is overconstrained. Try widening the final state constraint bounds.\n' ...
+                    ' 2) The state variables grid might be too coarse. Try refining the grids.\n' ...
+                    ' 3) You set VFPenalty to ''linear'' but the VFPenFactors are not large enough. Try increasing them.\n' ...
+                    'You can also try using the UseLevelSet option.\n' ...
+                    ' 4) You set VFPenalty to ''none''. In this case you probably know what you are doing.\n'])
+                progressbar = false;
+                break
+            end
         end
+    end
+
+    % Print information about constraints violation in the fwd run
+    if unfeasFwdWarn
+        unfeasFwdWarnStages(end+1) = k;
+        unfeasFwdWarnStages = unfeasFwdWarnStages(1:min(10, numel(unfeasFwdWarnStages)));
+        str = "The solution violates your constraints at stages:\n";
+        for n = 1:numel(unfeasFwdWarnStages)
+            str = str + "%d ";
+        end
+        if numel(unfeasFwdWarnStages) >= 10
+            str = str + "and others more";
+        end
+        str = str + ".\nYour problem might be overconstrained or the state variables grid might be too coarse.";
+        unfeasFwdWarnStages = num2cell(unfeasFwdWarnStages);
+        warning('DynaProg:failedForward', str, unfeasFwdWarnStages{:})
     end
 end
 
-% Print information about constraints violation in the fwd run
-if unfeasFwdWarn
-    unfeasFwdWarnStages(end+1) = k;
-    unfeasFwdWarnStages = unfeasFwdWarnStages(1:min(10, numel(unfeasFwdWarnStages)));
-    str = "The solution violates your constraints at stages:\n";
-    for n = 1:numel(unfeasFwdWarnStages)
-        str = str + "%d ";
-    end
-    if numel(unfeasFwdWarnStages) >= 10
-        str = str + "and others more";
-    end
-    str = str + ".\nYour problem might be overconstrained or the state variables grid might be too coarse.";
-    unfeasFwdWarnStages = num2cell(unfeasFwdWarnStages);
-    warning('DynaProg:failedForward', str, unfeasFwdWarnStages{:})
+% Set cost to infty if the backward phase failed
+if obj.failedBackward > 0
+    obj.CostProfile = inf(size(obj.CostProfile));
 end
 
 % Store state and control profiles

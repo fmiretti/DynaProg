@@ -16,6 +16,6 @@ obj = forward(obj);
 if ~obj.StoreValueFunction
     obj.VF = [];
 end
-% Reset warnings
-warning('on', 'DynaProg:failedCostToGoUpdate')
+
+
 end

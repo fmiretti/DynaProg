@@ -58,9 +58,12 @@ for k = obj.Nstages:-1:1
         end
     end
 
-    if all(unFeasInt(:) == true)
+    if obj.failedBackward == 0 && all(unFeasInt(:) == true)
+        obj.failedBackward = k;
+        fprintf('\n');
         warning('DynaProg:unfeasModel', ['There are no feasible state/controls '...
             'at stage %d. Check the model function, state grids and control grids.'], k)
+        fprintf('....')
     end
 
     % feasibility: include external model unfeasibility
@@ -98,9 +101,12 @@ for k = obj.Nstages:-1:1
 
 end
 
-if obj.VF{1}(obj.StateInitial) >= obj.myInf
+if obj.failedBackward == 0 && ( obj.VF{1}(obj.StateInitial) > obj.myInf )
+    obj.failedBackward = 1;
     fprintf('\n')
-    error('DynaProg:failedCostToGoUpdate', 'The Cost-to-Go update has failed: no feasible solution was found. Your problem might be overconstrained or the state variables grid might be too coarse.\n')
+    warning('DynaProg:unfeasibleInitialState', ['There is no feasible trajectory ' ...
+        'starting from the initial state. Check the initial state. ' ...
+        'Also, your problem might be overcostrained.\n'])
 end
 
 % Progress Bar

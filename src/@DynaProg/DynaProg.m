@@ -189,6 +189,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         NumAddOutputs double = 0 % Number of additional outputs in the system function
         UseSplitModel logical
         minfun = @(X, vecdim) min(X, [], vecdim, 'linear') % min function. The default works for 2019a+.
+        failedBackward = 0 % Stage at which the backward phase failed, or 0 otherwise 
         % Protected dependent properties
         %   These are defined to avoid property initialization order
         %   dependency along with their dependent counterparts
