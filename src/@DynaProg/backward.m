@@ -58,6 +58,11 @@ for k = obj.Nstages:-1:1
         end
     end
 
+    if all(unFeasInt(:) == true)
+        warning('DynaProg:unfeasModel', ['There are no feasible state/controls '...
+            'at stage %d. Check the model function, state grids and control grids.'], k)
+    end
+
     % feasibility: include external model unfeasibility
     if obj.UseSplitModel
         unfeas = unFeasInt | unfeasExt;
