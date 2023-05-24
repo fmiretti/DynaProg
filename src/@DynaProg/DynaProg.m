@@ -213,7 +213,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     end
     properties (SetAccess = private)
         VF   % Value Function
-        Version = "1.6";
+        Version = "1.6.3";
     end
     properties (Transient, Hidden)
         % Deprecated properties or property names
