@@ -108,6 +108,17 @@ for k = 1:obj.Nstages
     obj.CostProfile(k) = stageCost_opt;
 end
 
+% Add terminal cost
+obj.CostProfile(end+1) = obj.TerminalCost(state);
+
+% Set cost to infty if the backward phase failed
+if obj.failedBackward > 0
+    obj.CostProfile = inf(size(obj.CostProfile));
+end
+
+% Evaluate total cost
+obj.totalCost = sum(obj.CostProfile);
+
 % Forward phase warnings; do not print if the backward phase failed first
 if obj.failedBackward == 0
     % Check terminal state constraints
@@ -142,11 +153,6 @@ if obj.failedBackward == 0
         unfeasFwdWarnStages = num2cell(unfeasFwdWarnStages);
         warning('DynaProg:failedForward', str, unfeasFwdWarnStages{:})
     end
-end
-
-% Set cost to infty if the backward phase failed
-if obj.failedBackward > 0
-    obj.CostProfile = inf(size(obj.CostProfile));
 end
 
 % Store state and control profiles

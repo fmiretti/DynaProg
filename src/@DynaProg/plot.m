@@ -62,12 +62,12 @@ else
     ax(end+1) = nexttile([1 ncols]); %#ok<*AGROW>
 end
 if isempty(obj.Time)
-    cumCost = cumsum([0 obj.CostProfile]);
+    cumCost = cumsum(obj.CostProfile(1:end-1));
     plot(cumCost, 'LineWidth', 1.5)
     xlabel('Stage number')
 else
-    cumCost = cumsum([0 obj.CostProfile]);
-    plot(obj.Time, cumCost, 'LineWidth', 1.5)
+    cumCost = cumsum(obj.CostProfile(1:end-1));
+    plot(obj.Time(1:end-1), cumCost, 'LineWidth', 1.5)
     xlabel('Time')
 end
 title(obj.CostName)

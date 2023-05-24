@@ -171,6 +171,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         LevelSetInitialization char = [];
         TerminalCost function_handle = @(x) zeros( [cellfun(@length, x) 1] );
         % Results
+        totalCost
         StateProfile
         ControlProfile
         CostProfile
