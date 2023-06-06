@@ -14,7 +14,9 @@ if obj.UseLevelSet
     % a subset of U(x_k) (set of feasible cvs).
     isempty_UR = LevelSetValue>0;
     % Level set failure
-    if obj.failedBackward == 0 && all( LevelSetValue(:) > 0 )
+    if obj.DisplayWarnings && all( LevelSetValue(:) > 0 )
+        obj.failedBackward = k;
+        obj.DisplayWarnings = false;
         fprintf('\n')
         warning('DynaProg:failedLevelSetUpdate', 'The level set function update has failed: no feasible solution was found. Your problem might be overconstrained or the state variables grid might be too coarse.\n')
     end

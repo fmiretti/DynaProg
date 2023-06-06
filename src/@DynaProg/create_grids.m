@@ -4,7 +4,11 @@ function obj = create_grids(obj)
 
 % checks
 if ~isempty(obj.StateGrid)
-    obj = check_StateFinal(obj);
+    
+    if obj.DisplayWarnings
+        obj = check_StateFinal(obj);
+    end
+
     if length(obj.StateFinal) ~= length(obj.StateGrid)
         error('DynaProg:wrongSizeStateFinal', ['You must specify '...
             'one final condition for each of the state variables.']);
