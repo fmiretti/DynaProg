@@ -117,6 +117,11 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %           penalty cost for unfeasible terminal states.
     %       EnforceStateGrid: set a constraint so that the state variables
     %           do not exceed the state grids. Defaults to true.
+    %       Display: level of display in the command window. 
+    %           - 'off' displays no output.
+    %           - 'warn' displays only warnings and hides the progress bar.
+    %           - 'detailed' (default) displays both warnings and the 
+    %             progress bar.
     %     # Terminal Cost (Value Function initialization) settings
     %       TerminalCost: define a custom terminal cost as a function 
     %           handle. The function handle must accept only one input 
@@ -191,6 +196,9 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         UseSplitModel logical
         minfun = @(X, vecdim) min(X, [], vecdim, 'linear') % min function. The default works for 2019a+.
         failedBackward = 0 % Stage at which the backward phase failed, or 0 otherwise 
+        % Properties that control verbosity
+        DisplayWarnings logical = true
+        DisplayProgressbar logical = true
         % Protected dependent properties
         %   These are defined to avoid property initialization order
         %   dependency along with their dependent counterparts
@@ -198,6 +206,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         StateNameProt string = [];
         ControlNameProt string = [];
         CostNameProt string = [];
+        DisplayProt char {mustBeMember(DisplayProt, {'off', 'warn', 'detailed'})} = 'detailed';
     end
     properties (Dependent)
         N_SV double % total size of the state variables grids
@@ -510,6 +519,14 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             else
                 obj.CostNameProt = costName;
             end
+        end
+        function display = get.Display(obj)
+            display = obj.DisplayProt;
+        end
+        function obj = set.Display(obj, Display)
+            obj.DisplayProt = Display;
+            obj.DisplayProgressbar = strcmp(Display, 'detailed');
+            obj.DisplayWarnings = ismember(obj.Display, {'warn', 'detailed'});
         end
         function obj = set.VFInitialization(obj, VFPenalty)
             obj.VFPenalty = VFPenalty;

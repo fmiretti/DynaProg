@@ -16,6 +16,7 @@ obj = forward(obj);
 if ~obj.StoreValueFunction
     obj.VF = [];
 end
-
+% Reset verbosity flags
+obj.Display = obj.Display;
 
 end

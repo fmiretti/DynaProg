@@ -12,8 +12,10 @@ else
 end
 
 % Progress Bar
-progressbar = true;
-fprintf('DP forward progress:    ')
+if obj.DisplayProgressbar
+    fprintf('DP forward progress:    ')
+end
+
 % Preallocate profiles
 StateProfileMat = zeros(length(obj.StateGrid), obj.Nstages+1);
 StateProfileMat(:,1) = [obj.StateInitial{:}];
@@ -29,7 +31,7 @@ unfeasFwdWarnStages = [];
 
 for k = 1:obj.Nstages
     % Progress Bar
-    if progressbar
+    if obj.DisplayProgressbar
         fprintf('%s%2d %%', ones(1,4)*8, floor((k-1)/obj.Nstages*100));
     end
 
@@ -119,8 +121,8 @@ end
 % Evaluate total cost
 obj.totalCost = sum(obj.CostProfile);
 
-% Forward phase warnings; do not print if the backward phase failed first
-if obj.failedBackward == 0
+% Forward phase warnings
+if obj.DisplayWarnings
     % Check terminal state constraints
     for n = 1:length(obj.StateFinal)
         if ~isempty(obj.StateFinal{n})
@@ -132,7 +134,7 @@ if obj.failedBackward == 0
                     ' 3) You set VFPenalty to ''linear'' but the VFPenFactors are not large enough. Try increasing them.\n' ...
                     'You can also try using the UseLevelSet option.\n' ...
                     ' 4) You set VFPenalty to ''none''. In this case you probably know what you are doing.\n'])
-                progressbar = false;
+                obj.DisplayProgressbar = false;
                 break
             end
         end
@@ -160,7 +162,7 @@ obj.StateProfile = num2cell(StateProfileMat,2);
 obj.ControlProfile = num2cell(ControlProfileMat,2);
 
 % Progress Bar
-if progressbar
+if obj.DisplayProgressbar
     fprintf('%s%2d %%\n', ones(1,4)*8, 100);
 end
 

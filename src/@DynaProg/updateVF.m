@@ -48,10 +48,14 @@ obj.VF{k} = griddedInterpolant(obj.StateGridCol, cost_opt, ...
 
 % Warn the user if there are no feasible trajectories for
 % the tail subproblem; do not trigger more than once
-if obj.failedBackward == 0 && all(cost_opt(:) >= obj.myInf)
+if obj.DisplayWarnings && all(cost_opt(:) >= obj.myInf)
     obj.failedBackward = k;
+    obj.DisplayWarnings = false;
     fprintf('\n')
     warning('DynaProg:failedCostToGoUpdate', ['The Cost-to-Go update has' ...
         ' failed at stage %d. Your problem might be overconstrained.'], k)
+    if obj.DisplayProgressbar
+        fprintf('....')
+    end
 end
 end

@@ -8,15 +8,20 @@ else
     control = obj.ControlGrid;
 end
 
-% Progress Bar
-fprintf('DP backward progress:    ')
+% Progress Bar 
+if obj.DisplayProgressbar
+    fprintf('DP backward progress:    ')
+end
 % Vector dimensions corresponding to CVs
 vecdim_cv = (length(obj.N_SV)+1):(length(obj.N_CV)+length(obj.N_SV));
 
 % Backward Loop
 for k = obj.Nstages:-1:1
     % Progress Bar
-    fprintf('%s%2d %%', ones(1,4)*8, floor((obj.Nstages-k)/obj.Nstages*100));
+    if obj.DisplayProgressbar
+        fprintf('%s%2d %%', ones(1,4)*8, floor((obj.Nstages-k)/obj.Nstages*100));
+    end
+
     if obj.UseSplitModel
         if obj.SafeMode
             % Expand the intermediate variables to the combined grid
@@ -58,12 +63,15 @@ for k = obj.Nstages:-1:1
         end
     end
 
-    if obj.failedBackward == 0 && all(unFeasInt(:) == true)
+    if obj.DisplayWarnings && all(unFeasInt(:) == true)
         obj.failedBackward = k;
+        obj.DisplayWarnings = false;
         fprintf('\n');
         warning('DynaProg:unfeasModel', ['There are no feasible state/controls '...
             'at stage %d. Check the model function, state grids and control grids.'], k)
-        fprintf('....')
+        if obj.DisplayProgressbar
+            fprintf('....')
+        end
     end
 
     % feasibility: include external model unfeasibility
@@ -101,8 +109,9 @@ for k = obj.Nstages:-1:1
 
 end
 
-if obj.failedBackward == 0 && ( obj.VF{1}(obj.StateInitial) > obj.myInf )
+if obj.DisplayWarnings && ( obj.VF{1}(obj.StateInitial) > obj.myInf )
     obj.failedBackward = 1;
+    obj.DisplayWarnings = false;
     fprintf('\n')
     warning('DynaProg:unfeasibleInitialState', ['There is no feasible trajectory ' ...
         'starting from the initial state. Check the initial state. ' ...
@@ -110,5 +119,8 @@ if obj.failedBackward == 0 && ( obj.VF{1}(obj.StateInitial) > obj.myInf )
 end
 
 % Progress Bar
-fprintf('%s%2d %%\n', ones(1,4)*8, 100);
+if obj.DisplayProgressbar
+    fprintf('%s%2d %%\n', ones(1,4)*8, 100);
+end
+
 end
