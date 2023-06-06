@@ -210,10 +210,12 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         StateName
         ControlName
         CostName
+        Display 
     end
     properties (SetAccess = private)
+        % These properties are user-accessible as read-only
         VF   % Value Function
-        Version = "1.6.3";
+        Version = "1.6.4";
     end
     properties (Transient, Hidden)
         % Deprecated properties or property names
