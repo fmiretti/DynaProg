@@ -117,7 +117,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
     %           penalty cost for unfeasible terminal states.
     %       EnforceStateGrid: set a constraint so that the state variables
     %           do not exceed the state grids. Defaults to true.
-    %       Display: level of display in the command window. 
+    %       Display: level of display in the command window.
     %           - 'off' displays no output.
     %           - 'warn' displays only warnings and hides the progress bar.
     %           - 'detailed' (default) displays both warnings and the 
