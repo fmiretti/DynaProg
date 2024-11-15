@@ -22,6 +22,13 @@ end
 % Test the model
 testModelFun(obj);
 
+if strcmp(obj.ForwardMode, 'policyBased') && obj.UseLevelSet
+    error('DynaProg:policyBasedLevelSet', ['Using the control map in the ' ...
+        'forward phase is not compatible with the Level Set method. ' ...
+        'Set ''ForwardMode'' to ''valueBased'' or ' ...
+        'set ''UseLevelSet'' to false.'])
+end
+
 % Set the VF initialization method if unspecified
 if strcmp(obj.VFPenalty, 'auto')
     if obj.UseLevelSet
