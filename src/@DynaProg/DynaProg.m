@@ -166,6 +166,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         % Constructor: Name-Value pair arguments
         ExogenousInput = [];
         UseLevelSet logical = false;
+        ForwardMode char {mustBeMember(ForwardMode, {'valueBased', 'policyBased'})} = 'valueBased';
         StoreValueFunction logical = false;
         StoreControlMap logical = false;
         SafeMode = false;

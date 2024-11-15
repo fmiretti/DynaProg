@@ -96,14 +96,17 @@ for k = obj.Nstages:-1:1
     end
 
     % Update the value function
-    [obj, cv_opt] = updateVF(obj, k, states_next, stageCost, unfeas, vecdim_cv);
+    [obj, cv_opt_idx_full] = updateVF(obj, k, states_next, stageCost, unfeas, vecdim_cv);
 
     % Store cv map
-    if obj.StoreControlMap
+    if strcmp(obj.ForwardMode, 'policyBased') || obj.StoreControlMap
         for n = 1:length(obj.N_CV)
             cv_opt_sub = cell(1, length(obj.N_SV) + length(obj.N_CV));
-            [cv_opt_sub{:}] = ind2sub([obj.N_SV, obj.N_CV], cv_opt);
-            obj.ControlMap{n,k} = squeeze(obj.ControlGrid{n}(cv_opt_sub{n+length(obj.N_SV)}));
+            [cv_opt_sub{:}] = ind2sub([obj.N_SV, obj.N_CV], cv_opt_idx_full);
+            cv_opt = squeeze(obj.ControlGrid{n}(cv_opt_sub{n+length(obj.N_SV)}));
+            
+            obj.ControlMap{n,k} = griddedInterpolant(obj.StateGridCol, cv_opt, ...
+                'linear');
         end
     end
 
