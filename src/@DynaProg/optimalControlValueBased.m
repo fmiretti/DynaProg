@@ -1,5 +1,6 @@
-function [obj, cv_opt, intVars_opt] = optimalControl(obj, k, state_next, stageCost, unfeas, vecdim_cv, intVars)
-%optimaControl find optimal controls for the current stage
+function [obj, cv_opt, intVars_opt] = optimalControlValueBased(obj, k, state_next, stageCost, unfeas, vecdim_cv, intVars)
+%optimalControlValueBased find optimal controls for the current stage using
+%   value functions
 
 % Get level set - minimizing cv
 if obj.UseLevelSet

@@ -93,7 +93,7 @@ for k = 1:obj.Nstages
     end
     
     % Find the optimal cvs
-    [obj, cv_opt, intVars_opt] = optimalControl(obj, k, state_next, stageCost, unfeas, vecdim_cv, intVars);
+            [obj, cv_opt, intVars_opt] = optimalControlValueBased(obj, k, state_next, stageCost, unfeas, vecdim_cv, intVars);
 
     % Advance the simulation
     [state, stageCost_opt, unfeas_opt, addout] = model_wrapper(obj, state, cv_opt, exoInput_scalar, intVars_opt);
