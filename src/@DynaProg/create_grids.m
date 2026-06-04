@@ -22,6 +22,18 @@ end
 % Test the model
 testModelFun(obj);
 
+% Assign default values and check ControlType
+if isempty(obj.ControlType)
+    obj.ControlType = repmat({'continuous'}, [1 length(obj.N_CV)]);
+    if strcmp(obj.ForwardMode, 'policyBased')
+        warning('DynaProg:undefinedControlType', ['You did not specify ' ...
+            'whether the CVs are continuous or discrete. I will assume ' ...
+            'they are all continuous. Set the ''ControlType'' option ' ...
+            'if some of the CVs are discrete.'])
+    end
+end
+
+% Raise error if policy-based algo and level set method are both active 
 if strcmp(obj.ForwardMode, 'policyBased') && obj.UseLevelSet
     error('DynaProg:policyBasedLevelSet', ['Using the control map in the ' ...
         'forward phase is not compatible with the Level Set method. ' ...

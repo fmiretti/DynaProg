@@ -162,6 +162,7 @@ classdef (CaseInsensitiveProperties=true) DynaProg
         StateInitial
         StateFinal = [];
         ControlGrid
+        ControlType
         Nstages
         % Constructor: Name-Value pair arguments
         ExogenousInput = [];
@@ -441,6 +442,35 @@ classdef (CaseInsensitiveProperties=true) DynaProg
             obj.ControlGrid = obj.ControlGrid(:)';
         end
         
+        function obj = set.ControlType(obj, ControlType)
+            
+            % If possible, convert to cell array of char. Throw error
+            % otherwise
+            try
+                ControlType = cellstr(ControlType);
+            catch ME
+                error('DynaProg:wrongFormatControlType', '''ControlType'' must be a string array or cell array of character vectors.')
+            end
+
+            % Check that each entry is valid
+            for n = 1:length(ControlType)
+                % Handle 'd' and 'c' (undocumented behavior)
+                if strcmp(ControlType{n}, 'd')
+                    ControlType{n} = 'discrete';
+                end
+                if strcmp(ControlType{n}, 'c')
+                    ControlType{n} = 'continuous';
+                end
+                % Check value
+                if ~ismember(ControlType{n}, {'discrete', 'continuous'})
+                    error('DynaProg:invalidControlType', '''ControlType'' must be either ''discrete'' or ''continuous''.')
+                end
+            end
+
+            obj.ControlType = ControlType;
+
+        end
+
         function N_SV = get.N_SV(obj)
             N_SV = cellfun(@(x) length(x), obj.StateGrid);
         end
