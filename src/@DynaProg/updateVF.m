@@ -30,9 +30,11 @@ VF_next =  obj.VF{k+1}(states_next{:});
 cost = stageCost + VF_next;
 % Set cost-to-go to inf for the unfeasible/unreachable cvs
 cost(unfeas) = obj.myInf;
-% Find optimal control as a function of the current state
+% Find optimal control and corresponding cost (as a function of the current
+% state)
 [cost_opt, cv_opt_idx] = obj.minfun(cost, vecdim_cv);
 
+% Level set: handle case with no feasible controls
 if obj.UseLevelSet
     % For those state grid points where no feasible cv was found
     % (isempty_UR), calculate the VF based on the cv that minimizes
@@ -44,7 +46,7 @@ if obj.UseLevelSet
     end
 end
 
-% Construct VF approximating function for the current timestep
+% Construct VF approximating function for the current stage
 obj.VF{k} = griddedInterpolant(obj.StateGridCol, cost_opt, ...
     'linear');
 
