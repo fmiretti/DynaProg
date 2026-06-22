@@ -1,50 +1,32 @@
 function testModelFun(obj)
-%testModelFun test model function to check the size of the updated state.
+%testModelFun Test that the model function returns the correct number of states.
+%   The function uses scalar inputs. It does not check the validity of
+%   array expansions.
+%   Testing split models is also currently unsupported.
+
+if obj.UseSplitModel
+    return
+end
 
 state = obj.StateInitial;
-% If using safe mode, expand current state to the combined cv grid
-if obj.SafeMode
-    for n = 1:length(state)
-        state_exp{n} = state{n} + zeros(size(obj.ControlCombGrid{1}));
-    end
-else
-    state_exp = state;
-end
 
-% Select the first control in the grid
-cv_index = 1;
-control =  cellfun(@(x) x(cv_index), obj.ControlGrid, 'UniformOutput', false);
+% First control grid point (scalar)
+control = cellfun(@(x) x(1), obj.ControlGrid, 'UniformOutput', false);
 
-% Create intermediate variables
-if obj.UseSplitModel
-    intVars = obj.IntermediateVars{k};
-    unfeasExt = obj.unFeasExt{k};
-else
-    intVars = [];
-end
-% Create exogenous inputs
+% Exogenous input for stage 1 (scalar)
 if obj.UseExoInput
-    exoInput_scalar = num2cell(obj.ExogenousInput(1,:));
-    if obj.SafeMode
-        for n = 1:length(exoInput_scalar)
-            exoInput{n} = exoInput_scalar{n}.*ones(size(obj.ControlCombGrid{1}));
-        end
-    else
-        exoInput = exoInput_scalar;
-    end
+    exoInput = num2cell(obj.ExogenousInput(1,:));
 else
     exoInput = [];
-    exoInput_scalar = [];
 end
 
-% Evaluate state update and stage cost
-state_next = model_wrapper(obj, state_exp, control, exoInput, intVars);
+% Call the model and inspect state output
+state_next = model_wrapper(obj, state, control, exoInput, []);
 
-
-% Run checks
-% Check the size of the updated states
 if length(state_next) ~= length(obj.N_SV)
-    error('DynaProg:wrongSizeStateOutput', 'You defined %d SVs through the state grids. However, the model function returns %d SVs.', length(obj.N_SV), length(state_next))
+    error('DynaProg:wrongSizeStateOutput', ...
+        ['You defined %d state variables through StateGrid. ' ...
+         'However, the model function returns %d state variables.'], ...
+        length(obj.N_SV), length(state_next))
 end
-
 end
