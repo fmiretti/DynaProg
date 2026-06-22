@@ -26,10 +26,20 @@ for k = obj.Nstages:-1:1
         if obj.SafeMode
             % Expand the intermediate variables to the combined grid
             intVars = cellfun(@(x) repmat(shiftdim(x, -length(obj.N_SV)), [obj.N_SV ones(size(obj.N_CV))]), obj.IntermediateVars{k}, 'UniformOutput', false);
-            unfeasExt = repmat(shiftdim(obj.unFeasExt{k}, -length(obj.N_SV)), [obj.N_SV ones(size(obj.N_CV))]);
+            % Retrieve unfeasibilities due to the external model
+            unFeasExt_k = obj.unFeasExt{k};
+            if isempty(unFeasExt_k)
+                unfeasExt = false;
+            else
+                % Expand external unfeas to the combined grid
+                unfeasExt = repmat(shiftdim(unFeasExt_k, -length(obj.N_SV)), [obj.N_SV ones(size(obj.N_CV))]);
+            end
         else
             intVars = obj.IntermediateVars{k};
             unfeasExt = obj.unFeasExt{k};
+            if isempty(unfeasExt)
+                unfeasExt = false;
+            end
         end
     else
         intVars = [];

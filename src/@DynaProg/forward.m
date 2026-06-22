@@ -52,6 +52,9 @@ for k = 1:obj.Nstages
     if obj.UseSplitModel
         intVars = obj.IntermediateVars{k};
         unfeasExt = obj.unFeasExt{k};
+        if isempty(unfeasExt)
+            unfeasExt = false;
+        end
     else
         intVars = [];
     end
