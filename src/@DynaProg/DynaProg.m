@@ -330,21 +330,6 @@ classdef (CaseInsensitiveProperties=true) DynaProg
 
     %% Set/get methods
     methods
-        function obj = set.SysNameInt(obj, name)
-            obj.SysNameInt = name;
-            obj = obj.checkModelFun(name, 'int');
-        end
-
-        function obj = set.SysNameExt(obj, name)
-            obj.SysNameExt = name;
-            obj = obj.checkModelFun(name, 'ext');
-        end
-
-        function obj = set.SysName(obj, name)
-            obj.SysName = name;
-            obj = obj.checkModelFun(name, 'single');
-        end
-
         function obj = set.StateGrid(obj, StateGrid)
             % Check that the state grids are in an acceptable format and
             % ensure that each state grid is a col vector

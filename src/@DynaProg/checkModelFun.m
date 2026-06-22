@@ -22,12 +22,20 @@ catch ME
     end
 end
 
-% Check the number of inputs
+% Check the number of inputs.
+% If exogenous inputs are used: DynaProg expects two inputs (x, u)
+% or three inputs (x, u, intVar) for the internal model 
+% The external model function is the exception: create_intVars always
+% requires two inputs (u, w).
 switch mode
     case 'single'
-        if nargin(name) < 3
-            error('DynaProg:invalidModelInput', ['The model function must have at least three inputs (x, u and w).\n' ...
-                'If you do not want to use exogenous inputs, suppress the third input (replace it with a tilde ~)'])
+        if obj.UseExoInput
+            if nargin(name) < 3
+                error('DynaProg:invalidModelInput', ['The model function must have at least three inputs (x, u and w) ' ...
+                    'because you specified exogenous inputs (ExogenousInput).'])
+            end
+        elseif nargin(name) < 2
+            error('DynaProg:invalidModelInput', 'The model function must have at least two inputs (x and u).')
         end
     case 'ext'
         if nargin(name) < 2
@@ -35,9 +43,13 @@ switch mode
                 'If you do not want to use exogenous inputs, suppress the second input (replace it with a tilde ~)'])
         end
     case 'int'
-        if nargin(name) < 4
-            error('DynaProg:invalidModelInput', ['The internal model function must have at least four inputs (x, u, w and intVar).\n' ...
-                'If you do not want to use exogenous inputs, suppress the third input (replace it with a tilde ~)'])
+        if obj.UseExoInput
+            if nargin(name) < 4
+                error('DynaProg:invalidModelInput', ['The internal model function must have at least four inputs (x, u, w and intVar) ' ...
+                    'because you specified exogenous inputs (ExogenousInput).'])
+            end
+        elseif nargin(name) < 3
+            error('DynaProg:invalidModelInput', 'The internal model function must have at least three inputs (x, u and intVar).')
         end
 end
 
