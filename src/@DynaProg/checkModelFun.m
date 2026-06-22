@@ -1,6 +1,6 @@
 function obj = checkModelFun(obj, name, mode)
 %checkModelFun check that the model function has the correct number of
-%   inputs and outpus. Does not test the model.
+%   inputs and outputs. Does not test the model.
 
 % Extract the model function name
 info = functions(name);
