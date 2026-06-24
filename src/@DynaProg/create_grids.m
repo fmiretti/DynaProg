@@ -24,12 +24,12 @@ testModelFun(obj);
 
 % Assign default values and check ControlType
 if isempty(obj.ControlType)
-    obj.ControlType = repmat({'continuous'}, [1 length(obj.N_CV)]);
+    obj.ControlType = repmat({'discrete'}, [1 length(obj.N_CV)]);
     if strcmp(obj.ForwardMode, 'policyBased')
         warning('DynaProg:undefinedControlType', ['You did not specify ' ...
             'whether the CVs are continuous or discrete. I will assume ' ...
-            'they are all continuous. Set the ''ControlType'' option ' ...
-            'if some of the CVs are discrete.'])
+            'they are all discrete. Set the ''ControlType'' option ' ...
+            'if some of the CVs are continuous.'])
     end
 end
 
