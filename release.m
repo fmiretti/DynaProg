@@ -28,13 +28,13 @@ else
     tag = tag_fromSource;
 end
 
-[status, out] = system(sprintf("gh release view %s", tag));
+[status, ~] = system(sprintf("gh release view %s", tag));
 if status == 0
     error("Release %s already exists on the GitHub repository", tag)
 end
 % Check the changelog
 notes = readChangelog(tag);
-release_notes = sprintf(notes);
+release_notes = sprintf('%s', notes);
 
 %% 1. Export documentation
 fprintf('[1/4] Creating html documentation...\n');
@@ -97,8 +97,16 @@ fprintf('Created: %s\n\n', mltbx_name);
 %% 4. Create GitHub release
 fprintf('[4/4] Creating GitHub release...\n');
 
-release_notes = sprintf('gh release create %s "%s" --title "%s" --notes "%s"', ...
-    tag, mltbx_name, tag, release_notes);
+% Write notes to a temp file to avoid shell-quoting issues with
+% multi-line notes or embedded quotes/special characters.
+notes_file = [tempname '.md'];
+fid = fopen(notes_file, 'w');
+fwrite(fid, release_notes);
+fclose(fid);
+cleanup = onCleanup(@() delete(notes_file));
+
+cmd = sprintf('gh release create %s "%s" --title "%s" --notes-file "%s"', ...
+    tag, mltbx_name, tag, notes_file);
 
 [status, out] = system(cmd);
 

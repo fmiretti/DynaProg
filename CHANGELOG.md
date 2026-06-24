@@ -2,7 +2,7 @@
 
 # v1.7.0
 ## Features
-- There is now an option to use a policy-based algorithm for the forward phase (also known as control maps). See `ForwardMode` ans thd Theory guide for more information.
+- There is now an option to use a policy-based algorithm for the forward phase (also known as control maps). See `ForwardMode` and the Theory guide for more information.
 
 ## Fixes
 - Fixed a bug breaking the split model mode when the unfeasibility flag is left empty.
