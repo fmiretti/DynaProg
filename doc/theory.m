@@ -78,6 +78,20 @@
 %[text] i.e. the terminal cost is proportional to the distance between the terminal state and the closest bound of the terminal state constraints, and $b$ is the proportionality factor. Here, $v^{| \\cdot |}$ denotes element-wise absolute value of all elements of the vector $v$.
 %[text] The *linear* penalization can fail to enforce terminal state constraints if the $b$ factors are not set properly. *Rift* penalization on the other hand can cause the optimization to fail if the terminal state bounds are too tight or if the state grids are too coarse. This is caused by numerical issues related to the interpolations performed by the algorithm to obtain values for the cost-to-go function in the proximity of the unfeasible region.
 %[text] You can specify what method to use by using the `VFPenalty` property and the proportionality factors $b$ by using the `VFFactors` property. Upper and lower bounds for the terminal state constraints are specified with the `StateFinal` property. Read the [Syntax](file:./syntax.mlx) guide for more information.
+%[text] %[text:anchor:M_LevelSet] ## **The Level-Set method**
+%[text] As an alternative to penalizing the terminal cost, DynaProg can enforce terminal state constraints with the *Level-Set* method \[2\]. You can enable it by setting the `UseLevelSet` property to `true`.
+%[text] The idea is to decouple the enforcement of the terminal state constraints from the minimization of the cost. To this end, an auxiliary *level-set function* $I\_k(x\_k)$ is introduced alongside the cost-to-go $V\_k(x\_k)$ to keep track of which states can still reach the *target set*, i.e. the set of terminal states that satisfy the constraints, $\\mathcal{T} = \\lbrace x\_N : x\_\\mathrm{lb} \\le x\_N \\le x\_\\mathrm{ub} \\rbrace$.
+%[text] At the final stage, the level-set function is initialized so that it is non-positive inside the target set and positive outside of it:
+%[text] $I\_N(x\_N) = \\max\_i \\, \\max\\left( x\_{\\mathrm{lb},i} - x\_{N,i}, \\; x\_{N,i} - x\_{\\mathrm{ub},i} \\right),$
+%[text] where the index $i$ spans the state variables. By definition, $I\_N(x\_N) \\le 0$ if and only if $x\_N \\in \\mathcal{T}$(meets the terminal constraints).
+%[text] In the backward phase, the level-set function is propagated together with the cost-to-go:
+%[text] $I\_k(x\_k) = \\min\_{u\_k \\in U\_k(x\_k)} I\_{k+1}\\left( f\_k(x\_k,u\_k) \\right).$
+%[text] A state $x\_k$ at stage $k$ can reach the target set if and only if $I\_k(x\_k) \\le 0$. If $I\_k(x\_k) \>0$, that means that starting from state $x\_k$ there is no feasible sequence of controls $(u\_k, u\_{k+1}, ..., u\_{N-1})$ that can drive the state within the target set at stage $N$.
+%[text] At each stage, the controls that lead to a reachable successor state define the *reachable control set* $U\_k^R(x\_k) = \\lbrace u\_k \\in U\_k(x\_k) : I\_{k+1}\\left( f\_k(x\_k,u\_k) \\right) \\le 0 \\rbrace \\subseteq U\_k(x\_k)$.
+%[text] The cost-to-go update is restricted to the reachable control set, so that the minimization only considers controls that keep the terminal state constraints satisfiable:
+%[text] $V\_k(x\_k) = \\min\_{u\_k \\in U\_k^R(x\_k)} \\left( L\_k(x\_k,u\_k) + V\_{k+1}\\left( f\_k(x\_k,u\_k) \\right) \\right).$
+%[text] If the reachable control set $U\_k^R(x\_k)$ is empty, the target set cannot be reached from $x\_k$; in this case the cost-to-go is evaluated at the control that minimizes the level-set function, i.e. the one that comes closest to reaching the target set \[2\].
+%[text] Unlike the value function penalization approches, the Level-Set method enforces the terminal state constraints without introducing a large penalty term near the unfeasible region. This makes it more robust against the numerical issues caused by interpolating the cost-to-go close to the constraint bounds.
 %[text] ## Notes on computational time
 %[text] Dynamic programming is an extremely powerful optimization tool in that it allow to solve problems even if the state dynamics and cost function are highly nonlinear in their structure. However, this comes at the cost of relatively high computational time. By far, the most time-consuming task is to building the cost-to-go function in the backward phase. Consider the cost-to-go update that is repeated for each stage:
 %[text] $V\_k(x\_k) = \\min\_{u\_k \\in U\_k(x\_k)} \\left( L\_k(x\_k,u\_k) + V\_{k+1}\\left(  f\_k(x\_k,u\_k)\\right) \\right).$
@@ -85,6 +99,7 @@
 %[text] Not only is the number of function evaluations that must be performed very high, but it also increases dramatically by adding more state and/or control variables. For this reason, for complex system dynamics and cost functions, it is important that no unneccesary computations are defined in the system and cost function by the user. DynaProg provides several ways to help reducing them to a minimum, with simple features such as [exogenous inputs](file:./handle_exogenous_inputs.mlx) and [additional inputs](file:./use_additional_inputs.mlx) and the more advanced [system and cost function split](file:./splitting_the_model.mlx).
 %[text] ## References
 %[text] \[1\] Richard Ernest Bellman, *Dynamic programming*. Princeton, Nj: Princeton University Press, 2010. ISBN: 9780691146683.
+%[text] \[2\] P. Elbert, S. Ebbesen, and L. Guzzella, "Implementation of Dynamic Programming for n-Dimensional Optimal Control Problems With Final State Constraints," *IEEE Transactions on Control Systems Technology*, vol. 21, no. 3, pp. 924–931, 2013. doi: 10.1109/TCST.2012.2190935.
 %%
 %[text]{"align":"right"} *Contact: federico.miretti@polito.it*
 

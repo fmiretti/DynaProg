@@ -67,8 +67,10 @@
 %[text] Specify exogenous inputs required for your model in a cell array of numeric vectors. Each vector must have the same length as the number of stages of the optimization problem.
 %[text] %[text:anchor:H_AA34F1F5] #### **`'UseLevelSet'`**
 %[text] Enable Level-Set DP. Defaults to `false` if unspecified.
-%[text] #### **`'ForwardMode'`**
+%[text] %[text:anchor:M_1c48] #### **`'ForwardMode'`**
 %[text] Specify the algorithm to be used in the forward phase. Valid options are `'valueBased'` (default) or `'policyBased'.` See the [Theory](http://./theory.mlx) for more details.
+%[text] #### **`'`**ControlType**`'`**
+%[text] Specify the type of each control variable (`"discrete"` (default) or `"continuous"`) in a string array. This setting only affects the `policyBased` algorithm (see: [`ForwardMode`](internal:M_1c48)).
 %[text] #### `'SafeMode'`
 %[text] Enable Safe Mode (see the [documentation](file:./troubleshooting.mlx)).
 %[text] #### `'StoreControlMap'`
@@ -87,7 +89,7 @@
 %[text] Specify a terminal cost $F(x\_N)$ as a function handle. This property defaults to a null cost. See [Specify a terminal cost](file:./terminal_cost.mlx) and [this example](file:./example_terminal_cost.mlx) for more usage information or the [terminal cost section](file:./theory.mlx:H_6C2F7696) in the theory guide for more information.
 %[text] #### **`'VFPenalty'`**
 %[text] %[text:anchor:M_B56D103C]  Specify how final state values outside of the final state constraints bounds should be penalized. 
-%[text] - Set to `'rift'` to penalize state values outside of the bounds specified as `StateFinal` penalize with a cost equal to infinity. 
+%[text] - Set to `'rift'` to penalize state values outside of the bounds specified as `StateFinal` penalize with a cost equal to infinity.
 %[text] - Set to `'linear'` to penalize them with a cost term proportional to the distance from the bounds.
 %[text] - Set to `'none'` to disable any penalization. This may be useful if you want to only use your own terminal cost specified with the `TerminalCost` property. \
 %[text] This property defaults to `'linear'` if `'UseLevelSet'` is set to `true` and it is set to `'rift'` otherwise. 
