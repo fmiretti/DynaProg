@@ -81,7 +81,7 @@ opts.AuthorEmail = "federico.miretti@polito.it";
 opts.ToolboxImageFile = fullfile("doc", "card.png");
 
 opts.SupportedPlatforms.Win64 = true;
-opts.SupportedPlatforms.Mac = true;
+opts.SupportedPlatforms.Maci64 = true;
 opts.SupportedPlatforms.Glnxa64 = true;
 opts.SupportedPlatforms.MatlabOnline = true;
 
@@ -97,10 +97,11 @@ fprintf('Created: %s\n\n', mltbx_name);
 %% 4. Create GitHub release
 fprintf('[4/4] Creating GitHub release...\n');
 
-cmd = sprintf('gh release create %s "%s" --title "%s" --notes "%s"', ...
+release_notes = sprintf('gh release create %s "%s" --title "%s" --notes "%s"', ...
     tag, mltbx_name, tag, release_notes);
-% [status, out] = system(cmd);
-delete(notes_file);
+
+[status, out] = system(cmd);
+
 if status ~= 0
     error('DynaProg:release', 'gh release create failed:\n%s', out);
 end
