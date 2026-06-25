@@ -1,5 +1,9 @@
 # Unreleased
 
+# v1.7.1
+## Fixes
+- Fixed a build bug that prevented the documentation from updating.
+
 # v1.7.0
 ## Features
 - There is now an option to use a policy-based algorithm for the forward phase (also known as control maps). See `ForwardMode` and the Theory guide for more information.
