@@ -38,7 +38,7 @@ release_notes = sprintf('%s', notes);
 
 %% 1. Export documentation
 fprintf('[1/4] Creating html documentation...\n');
-run(fullfile('doc', 'export.m'));
+export_docs();
 fprintf('Done.\n\n');
 
 %% 2. Run tests
